@@ -18,6 +18,7 @@ export const CONFLICT_DETECTION_SYSTEM_PROMPT =
   + '- `distanceMeters`\n'
   + '- `overlapDays`\n'
   + '- `severity` (low | medium | high)\n'
-  + '- `reason`\n\n'
+  + '- `reason`\n'
+  + '- `budgetImpact` (estimated cost impact in TL or descriptive string, if available)\n\n'
   + 'If there are no conflicts, return `{ "summary": "No conflicts detected.", "conflicts": [] }`.\n'
   + 'Be concise, factual, and actionable. Format your response as a structured conflict report.';

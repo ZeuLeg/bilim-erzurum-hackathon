@@ -21,6 +21,7 @@ export type ConflictAlertDTO = {
   overlapDays: number;
   severity: 'low' | 'medium' | 'high';
   reason: string;
+  budgetImpact?: string | number;
 };
 
 export type ParsedConflictReport = {
@@ -72,6 +73,14 @@ function normalizeParsedReport(data: any): ParsedConflictReport | null {
       overlapDays: typeof item.overlapDays === 'number' ? item.overlapDays : Number(item.overlapDays) || 0,
       severity: ['low', 'medium', 'high'].includes(item.severity) ? item.severity : 'low',
       reason: String(item.reason ?? ''),
+      budgetImpact:
+        typeof item.budgetImpact === 'string'
+          ? item.budgetImpact
+          : typeof item.budgetImpact === 'number'
+          ? item.budgetImpact
+          : item.budgetImpact != null
+          ? String(item.budgetImpact)
+          : undefined,
     }));
 
   return {

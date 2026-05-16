@@ -46,7 +46,7 @@ function formatOrderDateRange(start: string, end: string) {
 }
 
 export default function ClientDashboard({ workOrders, pendingReportsCount, totalWorkOrders }: ClientDashboardProps) {
-  const { messages, append, isLoading } = useChat({ api: '/api/agent' });
+  const { messages, append, isLoading, error } = useChat({ api: '/api/agent' });
 
   const highSeverityCount = useMemo(() => {
     return messages.reduce((count, message) => {
@@ -149,7 +149,7 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
             <h2 className="text-lg font-semibold text-slate-900">AI Sonuç Paneli</h2>
             <p className="mt-1 text-sm text-slate-500">Yapay zeka çakışma analizini çalıştırdığınızda burada sonuçlar gözükecek.</p>
             <div className="mt-6">
-              <ConflictPanel messages={messages} isLoading={isLoading} />
+              <ConflictPanel messages={messages} isLoading={isLoading} chatError={error} />
             </div>
           </aside>
         </div>
