@@ -3,8 +3,8 @@ import type { Config } from 'drizzle-kit';
 export default {
   schema: './src/db/schema.ts',
   out: './drizzle',
-  dialect: 'sqlite',
+  dialect: 'turso',
   dbCredentials: {
-    url: 'citysync.db',
+    url: 'file:citysync.db',
   },
 } satisfies Config;

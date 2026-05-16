@@ -5,10 +5,10 @@ import { reports, workOrders } from '@/db/schema';
 
 export const getWorkOrdersTool = tool({
   description:
-    'Retrieves all scheduled municipal work orders from the database, including department name, dates, location, and status.',
+    'Retrieves all scheduled municipal work orders including department name, dates, location coordinates, and status.',
   parameters: z.object({}),
   execute: async () => {
-    const data = db.select().from(workOrders).all();
+    const data = await db.select().from(workOrders);
     return data.map((wo) => ({
       ...wo,
       plannedStartDate: wo.plannedStartDate.toISOString(),
@@ -19,17 +19,10 @@ export const getWorkOrdersTool = tool({
 
 export const getCitizenReportsTool = tool({
   description:
-    'Retrieves all citizen-submitted infrastructure reports, including title, description, status, and GPS coordinates.',
-  parameters: z.object({
-    status: z
-      .enum(['pending', 'in_progress', 'resolved', 'all'])
-      .optional()
-      .default('all')
-      .describe('Filter reports by status'),
-  }),
-  execute: async ({ status }) => {
-    const query = db.select().from(reports);
-    const data = status === 'all' ? query.all() : query.where().all();
+    'Retrieves citizen-submitted infrastructure reports including title, description, status, and GPS coordinates.',
+  parameters: z.object({}),
+  execute: async () => {
+    const data = await db.select().from(reports);
     return data.map((r) => ({
       ...r,
       createdAt: r.createdAt.toISOString(),

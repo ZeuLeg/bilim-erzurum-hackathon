@@ -1,35 +1,33 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/libsql';
 import path from 'path';
 import * as schema from './schema';
 import { reports, users, workOrders } from './schema';
 
-const DB_PATH = path.join(process.cwd(), 'citysync.db');
-const sqlite = new Database(DB_PATH);
-sqlite.pragma('journal_mode = WAL');
-const db = drizzle(sqlite, { schema });
+const client = createClient({
+  url: `file:${path.join(process.cwd(), 'citysync.db')}`,
+});
+const db = drizzle(client, { schema });
 
-console.log('Clearing existing data...');
-db.delete(workOrders).run();
-db.delete(reports).run();
-db.delete(users).run();
+async function seed() {
+  console.log('Clearing existing data...');
+  await db.delete(workOrders);
+  await db.delete(reports);
+  await db.delete(users);
 
-const insertedUsers = db
-  .insert(users)
-  .values([
-    { role: 'citizen', email: 'ali.yilmaz@example.com' },
-    { role: 'citizen', email: 'fatma.kaya@example.com' },
-    { role: 'staff', email: 'mehmet.demir@erzurum.bel.tr' },
-    { role: 'admin', email: 'admin@erzurum.bel.tr' },
-  ])
-  .returning()
-  .all();
+  const insertedUsers = await db
+    .insert(users)
+    .values([
+      { role: 'citizen', email: 'ali.yilmaz@example.com' },
+      { role: 'citizen', email: 'fatma.kaya@example.com' },
+      { role: 'staff', email: 'mehmet.demir@erzurum.bel.tr' },
+      { role: 'admin', email: 'admin@erzurum.bel.tr' },
+    ])
+    .returning();
 
-console.log(`✓ Created ${insertedUsers.length} users`);
+  console.log(`✓ Created ${insertedUsers.length} users`);
 
-// 5 citizen reports around Erzurum city center (lat ~39.90, lng ~41.27)
-db.insert(reports)
-  .values([
+  await db.insert(reports).values([
     {
       userId: insertedUsers[0].id,
       title: 'Pothole on Cumhuriyet Caddesi',
@@ -75,16 +73,12 @@ db.insert(reports)
       locationLng: 41.258,
       createdAt: new Date(),
     },
-  ])
-  .run();
+  ]);
 
-console.log('✓ Created 5 citizen reports');
+  console.log('✓ Created 5 citizen reports');
 
-// 3 work orders — work orders 1 & 2 DELIBERATELY collide (same location, overlapping dates)
-db.insert(workOrders)
-  .values([
+  await db.insert(workOrders).values([
     {
-      // Work Order 1: Asphalt Dept paves Cumhuriyet Caddesi June 1–15
       departmentName: 'Asphalt Department',
       description:
         'Full road resurfacing of Cumhuriyet Caddesi between Kale and Çaykara intersections. Requires road closure.',
@@ -95,8 +89,7 @@ db.insert(workOrders)
       status: 'scheduled',
     },
     {
-      // Work Order 2: Water Dept excavates the SAME road June 8–20 (overlaps with WO #1!)
-      // ⚠️ DELIBERATE COLLISION: Asphalt is paved June 1-15, Water Dept digs it up June 8-20
+      // ⚠️ DELIBERATE COLLISION: same location as WO#1, overlapping dates Jun 8-20
       departmentName: 'Water & Sewage Department',
       description:
         'Main water pipe replacement on Cumhuriyet Caddesi. Requires full road excavation — asphalt will be destroyed.',
@@ -107,7 +100,6 @@ db.insert(workOrders)
       status: 'scheduled',
     },
     {
-      // Work Order 3: Electrical Dept on a different street — no collision
       departmentName: 'Electrical Department',
       description: 'LED streetlight upgrade along Atatürk University Boulevard.',
       plannedStartDate: new Date('2026-06-20'),
@@ -116,14 +108,16 @@ db.insert(workOrders)
       locationLng: 41.278,
       status: 'scheduled',
     },
-  ])
-  .run();
+  ]);
 
-console.log('✓ Created 3 work orders');
-console.log('');
-console.log('⚠️  DELIBERATE COLLISION INJECTED:');
-console.log('   Work Order #1 (Asphalt Dept)  → Jun 1–15  at lat:39.907 lng:41.268');
-console.log('   Work Order #2 (Water & Sewage) → Jun 8–20  at lat:39.907 lng:41.268');
-console.log('   The AI agent should detect this 7-day overlap and alert the admin.');
-console.log('');
-console.log('Seed complete!');
+  console.log('✓ Created 3 work orders');
+  console.log('');
+  console.log('⚠️  DELIBERATE COLLISION INJECTED:');
+  console.log('   Work Order #1 (Asphalt Dept)   → Jun 1–15  at lat:39.907 lng:41.268');
+  console.log('   Work Order #2 (Water & Sewage)  → Jun 8–20  at lat:39.907 lng:41.268');
+  console.log('   7-day overlap — AI agent should detect this.');
+  console.log('');
+  console.log('Seed complete!');
+}
+
+seed().catch(console.error);
