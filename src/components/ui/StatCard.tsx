@@ -17,28 +17,45 @@ const valueTones = {
 
 export type StatCardTone = keyof typeof surfaceTones;
 
-/** A headline metric tile — used for dashboard stats and the impact panel. */
 export function StatCard({
   label,
   value,
   hint,
+  caption,
+  emoji,
   icon,
   tone = 'default',
 }: {
   label: string;
   value: ReactNode;
   hint?: string;
+  caption?: string;
+  emoji?: string;
   icon?: ReactNode;
   tone?: StatCardTone;
 }) {
   return (
     <div className={cn('rounded-3xl border p-5 shadow-sm', surfaceTones[tone])}>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        {icon ? <span className="text-slate-400">{icon}</span> : null}
-      </div>
-      <p className={cn('mt-3 text-3xl font-semibold tracking-tight', valueTones[tone])}>{value}</p>
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      {emoji ? (
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-xl">{emoji}</div>
+          <div>
+            <p className="text-sm font-medium text-slate-500">{label}</p>
+            <p className={cn('mt-2 text-3xl font-semibold tracking-tight', valueTones[tone])}>{value}</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-slate-500">{label}</p>
+            {icon ? <span className="text-slate-400">{icon}</span> : null}
+          </div>
+          <p className={cn('mt-3 text-3xl font-semibold tracking-tight', valueTones[tone])}>{value}</p>
+        </>
+      )}
+      {(hint ?? caption) ? <p className="mt-2 text-xs text-slate-500">{hint ?? caption}</p> : null}
     </div>
   );
 }
+
+export default StatCard;

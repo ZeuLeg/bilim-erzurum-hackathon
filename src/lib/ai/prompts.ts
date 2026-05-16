@@ -16,6 +16,7 @@ export const CONFLICT_DETECTION_SYSTEM_PROMPT =
   + '- `overlapDays` — copy exactly from getDetectedConflicts\n'
   + '- `severity` (low | medium | high)\n'
   + '- `reason` — a concrete, actionable recommendation written in Turkish\n'
-  + '- `budgetImpact` — the numeric wastedBudgetTRY value from getDetectedConflicts\n\n'
+  + '- `budgetImpact` — the numeric wastedBudgetTRY value from getDetectedConflicts\n'
+  + '- If you recommend rescheduling a work order, include `workOrderId` (the numeric id), `newStart` (ISO date string), and `newEnd` (ISO date string) on that conflict object.\n\n'
   + 'If there are no conflicts, return `{ "summary": "Çakışma tespit edilmedi.", "conflicts": [] }`.\n'
   + 'Be concise, factual, and actionable.';
