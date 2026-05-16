@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { reports, workOrders } from '@/db/schema';
 
@@ -19,10 +20,21 @@ export const getWorkOrdersTool = tool({
 
 export const getCitizenReportsTool = tool({
   description:
-    'Retrieves citizen-submitted infrastructure reports including title, description, status, and GPS coordinates.',
-  parameters: z.object({}),
-  execute: async () => {
-    const data = await db.select().from(reports);
+    'Retrieves all citizen-submitted infrastructure reports, including title, description, status, and GPS coordinates.',
+  parameters: z.object({
+    status: z
+      .enum(['pending', 'in_progress', 'resolved', 'all'])
+      .optional()
+      .default('all')
+      .describe('Filter reports by status'),
+  }),
+  execute: async ({ status }) => {
+    const query = db.select().from(reports);
+    const data =
+      status === 'all'
+        ? await query
+        : await query.where(eq(reports.status, status));
+
     return data.map((r) => ({
       ...r,
       createdAt: r.createdAt.toISOString(),
