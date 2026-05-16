@@ -22,9 +22,18 @@ export async function PATCH(request: Request, { params }: Params) {
     return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
   }
 
+  const updateData: { status?: 'pending' | 'in_progress' | 'resolved' } = {};
+  if (body.status) {
+    updateData.status = body.status;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return NextResponse.json({ error: 'No updatable fields provided' }, { status: 400 });
+  }
+
   const updated = await db
     .update(reports)
-    .set({ ...(body.status && { status: body.status }) })
+    .set(updateData)
     .where(eq(reports.id, Number(id)))
     .returning();
 
