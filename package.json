@@ -1,28 +1,45 @@
 {
-  "name": "bilim-erzurum-hackathon",
-  "version": "1.0.0",
-  "description": "",
-  "homepage": "https://github.com/ZeuLeg/bilim-erzurum-hackathon#readme",
-  "bugs": {
-    "url": "https://github.com/ZeuLeg/bilim-erzurum-hackathon/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ZeuLeg/bilim-erzurum-hackathon.git"
-  },
-  "license": "MIT",
-  "author": "",
-  "type": "module",
-  "main": "index.js",
+  "name": "citysync-ai",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "next": "15.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "ai": "^4.3.16",
+    "@ai-sdk/anthropic": "^1.2.9",
+    "drizzle-orm": "^0.41.0",
+    "better-sqlite3": "^11.10.0",
+    "react-leaflet": "^4.2.1",
+    "leaflet": "^1.9.4",
+    "zod": "^3.24.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0",
+    "class-variance-authority": "^0.7.1",
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.4.0",
-    "eslint-config-prettier": "^10.1.8",
-    "globals": "^17.6.0",
-    "prettier": "3.8.3",
-    "typescript-eslint": "^8.59.3"
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/leaflet": "^1.9.14",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "drizzle-kit": "^0.30.4",
+    "tsx": "^4.19.2",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.2"
   }
 }

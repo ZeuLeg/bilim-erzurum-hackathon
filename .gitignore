@@ -69,6 +69,15 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.local.example
+
+# SQLite database (local dev only)
+citysync.db
+citysync.db-shm
+citysync.db-wal
+
+# Drizzle generated migrations (optional: commit if you want migration history)
+drizzle/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
