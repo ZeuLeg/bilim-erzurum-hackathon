@@ -30,8 +30,8 @@ async function seed() {
   await db.insert(reports).values([
     {
       userId: insertedUsers[0].id,
-      title: 'Pothole on Cumhuriyet Caddesi',
-      description: 'Large pothole causing vehicle damage near the main intersection.',
+      title: 'Cumhuriyet Caddesi’nde büyük çukur',
+      description: 'Ana kavşağa yakın noktada araçlara zarar veren derin bir çukur var.',
       status: 'pending',
       locationLat: 39.907,
       locationLng: 41.268,
@@ -39,8 +39,8 @@ async function seed() {
     },
     {
       userId: insertedUsers[0].id,
-      title: 'Broken streetlight near Yakutiye Mosque',
-      description: 'Streetlight has been out for 3 days, creating a pedestrian safety hazard.',
+      title: 'Yakutiye Camii yakınında arızalı sokak lambası',
+      description: 'Sokak lambası 3 gündür yanmıyor, yayalar için güvenlik riski oluşturuyor.',
       status: 'pending',
       locationLat: 39.912,
       locationLng: 41.278,
@@ -48,8 +48,8 @@ async function seed() {
     },
     {
       userId: insertedUsers[1].id,
-      title: 'Water pipe leakage near City Hall',
-      description: 'Visible water flooding the sidewalk, likely a burst main pipe.',
+      title: 'Belediye binası yakınında su borusu sızıntısı',
+      description: 'Kaldırımı su basmış durumda, büyük ihtimalle patlamış bir ana isale hattı.',
       status: 'in_progress',
       locationLat: 39.901,
       locationLng: 41.265,
@@ -57,8 +57,8 @@ async function seed() {
     },
     {
       userId: insertedUsers[1].id,
-      title: 'Cracked pavement near Erzurum Castle',
-      description: 'Large cracks in the pedestrian walkway, serious trip hazard.',
+      title: 'Erzurum Kalesi yakınında çatlak kaldırım',
+      description: 'Yaya yolunda büyük çatlaklar var, ciddi düşme tehlikesi oluşturuyor.',
       status: 'pending',
       locationLat: 39.92,
       locationLng: 41.281,
@@ -66,8 +66,8 @@ async function seed() {
     },
     {
       userId: insertedUsers[0].id,
-      title: 'Damaged road sign on E-80 highway entrance',
-      description: 'Speed limit sign knocked over, missing from post entirely.',
+      title: 'E-80 otoyolu girişinde hasarlı trafik levhası',
+      description: 'Hız sınırı levhası devrilmiş, direğinden tamamen kopmuş durumda.',
       status: 'pending',
       locationLat: 39.895,
       locationLng: 41.258,
@@ -75,13 +75,13 @@ async function seed() {
     },
   ]);
 
-  console.log('✓ Created 5 citizen reports');
+  console.log('✓ 5 vatandaş ihbarı oluşturuldu');
 
   await db.insert(workOrders).values([
     {
-      departmentName: 'Asphalt Department',
+      departmentName: 'Asfalt Müdürlüğü',
       description:
-        'Full road resurfacing of Cumhuriyet Caddesi between Kale and Çaykara intersections. Requires road closure.',
+        'Cumhuriyet Caddesi’nin Kale ve Çaykara kavşakları arasında tam yol kaplama çalışması. Yol kapatması gerektirir.',
       plannedStartDate: new Date('2026-06-01'),
       plannedEndDate: new Date('2026-06-15'),
       locationLat: 39.907,
@@ -89,10 +89,10 @@ async function seed() {
       status: 'scheduled',
     },
     {
-      // ⚠️ DELIBERATE COLLISION: same location as WO#1, overlapping dates Jun 8-20
-      departmentName: 'Water & Sewage Department',
+      // ⚠️ BİLİNÇLİ ÇAKIŞMA: WO#1 ile aynı konum, 8-20 Haziran tarih çakışması
+      departmentName: 'Su ve Kanalizasyon Müdürlüğü',
       description:
-        'Main water pipe replacement on Cumhuriyet Caddesi. Requires full road excavation — asphalt will be destroyed.',
+        'Cumhuriyet Caddesi’nde ana su borusu değişimi. Tam yol kazısı gerektirir — yeni asfalt tahrip olacak.',
       plannedStartDate: new Date('2026-06-08'),
       plannedEndDate: new Date('2026-06-20'),
       locationLat: 39.907,
@@ -100,8 +100,8 @@ async function seed() {
       status: 'scheduled',
     },
     {
-      departmentName: 'Electrical Department',
-      description: 'LED streetlight upgrade along Atatürk University Boulevard.',
+      departmentName: 'Elektrik İşleri Müdürlüğü',
+      description: 'Atatürk Üniversitesi Bulvarı boyunca LED sokak aydınlatması yenilemesi.',
       plannedStartDate: new Date('2026-06-20'),
       plannedEndDate: new Date('2026-06-30'),
       locationLat: 39.912,
@@ -110,14 +110,14 @@ async function seed() {
     },
   ]);
 
-  console.log('✓ Created 3 work orders');
+  console.log('✓ 3 iş emri oluşturuldu');
   console.log('');
-  console.log('⚠️  DELIBERATE COLLISION INJECTED:');
-  console.log('   Work Order #1 (Asphalt Dept)   → Jun 1–15  at lat:39.907 lng:41.268');
-  console.log('   Work Order #2 (Water & Sewage)  → Jun 8–20  at lat:39.907 lng:41.268');
-  console.log('   7-day overlap — AI agent should detect this.');
+  console.log('⚠️  BİLİNÇLİ ÇAKIŞMA EKLENDİ:');
+  console.log('   İş Emri #1 (Asfalt Müd.)         → 1-15 Haz  konum:39.907, 41.268');
+  console.log('   İş Emri #2 (Su ve Kanalizasyon)  → 8-20 Haz  konum:39.907, 41.268');
+  console.log('   7 günlük çakışma — AI ajanı bunu tespit etmeli.');
   console.log('');
-  console.log('Seed complete!');
+  console.log('Seed tamamlandı!');
 }
 
 seed().catch(console.error);

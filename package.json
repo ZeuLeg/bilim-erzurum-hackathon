@@ -14,10 +14,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.2.9",
     "@ai-sdk/google": "^1.2.22",
     "@libsql/client": "^0.14.0",
-    "ai": "^5.0.52",
+    "ai": "^4.3.19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",

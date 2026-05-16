@@ -3,6 +3,20 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { reports, workOrders } from '@/db/schema';
+import { detectConflicts } from '@/lib/conflictEngine';
+
+export const getDetectedConflictsTool = tool({
+  description:
+    'Runs the deterministic conflict engine over all municipal work orders and ' +
+    'returns pre-computed conflicts with EXACT distanceMeters, overlapDays, ' +
+    'severity and estimated impact (wastedBudgetTRY, co2KgSaved). Call this first ' +
+    'and trust its numbers — never compute distance or date overlap yourself.',
+  parameters: z.object({}),
+  execute: async () => {
+    const data = await db.select().from(workOrders);
+    return detectConflicts(data);
+  },
+});
 
 export const getWorkOrdersTool = tool({
   description:
@@ -43,6 +57,7 @@ export const getCitizenReportsTool = tool({
 });
 
 export const agentTools = {
+  getDetectedConflicts: getDetectedConflictsTool,
   getWorkOrders: getWorkOrdersTool,
   getCitizenReports: getCitizenReportsTool,
 };

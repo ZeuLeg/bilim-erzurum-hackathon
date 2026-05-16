@@ -118,4 +118,35 @@ describe('detectConflicts', () => {
     expect(report.conflicts).toHaveLength(1);
     expect(report.conflicts[0].severity).toBe('high');
   });
+
+  it('matches Turkish department names and aggregates the impact total', () => {
+    const report = detectConflicts([
+      make({
+        id: 1,
+        departmentName: 'Asfalt Müdürlüğü',
+        plannedStartDate: '2026-06-01',
+        plannedEndDate: '2026-06-15',
+        locationLat: 39.907,
+        locationLng: 41.268,
+      }),
+      make({
+        id: 2,
+        departmentName: 'Su ve Kanalizasyon Müdürlüğü',
+        plannedStartDate: '2026-06-08',
+        plannedEndDate: '2026-06-20',
+        locationLat: 39.907,
+        locationLng: 41.268,
+      }),
+    ]);
+    expect(report.conflicts).toHaveLength(1);
+    expect(report.conflicts[0].severity).toBe('high');
+    expect(report.conflicts[0].impact.wastedBudgetTRY).toBeGreaterThan(0);
+    expect(report.totalImpact.wastedBudgetTRY).toBe(report.conflicts[0].impact.wastedBudgetTRY);
+    expect(report.totalImpact.co2KgSaved).toBeGreaterThan(0);
+  });
+
+  it('reports a zero impact total when there are no conflicts', () => {
+    const report = detectConflicts([make({ id: 1 })]);
+    expect(report.totalImpact).toEqual({ wastedBudgetTRY: 0, co2KgSaved: 0, roadMetersSaved: 0 });
+  });
 });

@@ -17,6 +17,20 @@ const EXCAVATION_KEYWORDS = [
   'doğalgaz',
 ];
 
+/**
+ * Planning estimates for the waste a single unresolved conflict causes.
+ * Deliberately conservative, transparent figures — shown to judges as
+ * "tahmini" (estimated), not billed amounts.
+ */
+const IMPACT_BY_KIND = {
+  // Fresh asphalt destroyed by a later excavation, then repaved.
+  pavement: { wastedBudgetTRY: 1_600_000, co2KgSaved: 25_000, roadMetersSaved: 500 },
+  // Two crews forced onto the same spot — idle machinery, detours, delays.
+  sameSite: { wastedBudgetTRY: 220_000, co2KgSaved: 2_400, roadMetersSaved: 0 },
+  // Nearby works needing traffic and crew coordination.
+  nearby: { wastedBudgetTRY: 65_000, co2KgSaved: 700, roadMetersSaved: 0 },
+} as const;
+
 export type WorkOrderInput = {
   id: number;
   departmentName: string;
@@ -28,6 +42,15 @@ export type WorkOrderInput = {
   status: string;
 };
 
+export type ConflictImpact = {
+  /** Estimated municipal budget wasted if the conflict is not resolved (TRY). */
+  wastedBudgetTRY: number;
+  /** Estimated CO2 emissions avoided by preventing the rework (kg). */
+  co2KgSaved: number;
+  /** Estimated length of road saved from being torn up and repaved (meters). */
+  roadMetersSaved: number;
+};
+
 export type DetectedConflict = {
   workOrderA: WorkOrderInput;
   workOrderB: WorkOrderInput;
@@ -35,11 +58,14 @@ export type DetectedConflict = {
   overlapDays: number;
   severity: 'low' | 'medium' | 'high';
   reason: string;
+  impact: ConflictImpact;
 };
 
 export type ConflictReport = {
   summary: string;
   conflicts: DetectedConflict[];
+  /** Sum of every conflict's impact — the headline sustainability figure. */
+  totalImpact: ConflictImpact;
 };
 
 function includesAny(text: string, keywords: string[]): boolean {
@@ -62,13 +88,19 @@ const severityRank: Record<DetectedConflict['severity'], number> = {
   low: 2,
 };
 
+const emptyImpact: ConflictImpact = {
+  wastedBudgetTRY: 0,
+  co2KgSaved: 0,
+  roadMetersSaved: 0,
+};
+
 /**
  * Deterministically detects scheduling conflicts between municipal work orders.
  *
  * A conflict is any pair of work orders within {@link PROXIMITY_METERS} of each
  * other whose planned date ranges overlap by at least one day. Severity is HIGH
  * for pavement conflicts (resurfacing vs. excavation) or same-site overlaps,
- * MEDIUM otherwise.
+ * MEDIUM otherwise. Each conflict carries an estimated budget/CO2 impact.
  *
  * Pure function — no database, no AI, no network. This is the guaranteed
  * detection path that works even when the AI agent is unavailable.
@@ -95,30 +127,43 @@ export function detectConflicts(workOrders: WorkOrderInput[]): ConflictReport {
 
       let severity: DetectedConflict['severity'];
       let reason: string;
+      let impact: ConflictImpact;
 
       if (isPavementConflict(a, b)) {
         severity = 'high';
+        impact = IMPACT_BY_KIND.pavement;
         reason =
           `${a.departmentName} ve ${b.departmentName} aynı bölgede ${overlapDays} gün ` +
           `örtüşen tarihlerde çalışacak. Yeni dökülen asfalt kazı sırasında tahrip olur — ` +
           `kazı çalışmasını asfaltlamadan önce planlayın.`;
       } else if (distanceMeters <= SAME_SITE_METERS) {
         severity = 'high';
+        impact = IMPACT_BY_KIND.sameSite;
         reason =
           `İki iş emri neredeyse aynı noktada (${distanceMeters} m) ve ${overlapDays} gün ` +
           `boyunca örtüşüyor. Ekipler aynı alanda çakışacak.`;
       } else {
         severity = 'medium';
+        impact = IMPACT_BY_KIND.nearby;
         reason =
           `İki iş emri ${distanceMeters} m mesafede ve ${overlapDays} gün örtüşüyor. ` +
           `Trafik ve ekip koordinasyonu gerekir.`;
       }
 
-      conflicts.push({ workOrderA: a, workOrderB: b, distanceMeters, overlapDays, severity, reason });
+      conflicts.push({ workOrderA: a, workOrderB: b, distanceMeters, overlapDays, severity, reason, impact });
     }
   }
 
   conflicts.sort((x, y) => severityRank[x.severity] - severityRank[y.severity]);
+
+  const totalImpact = conflicts.reduce<ConflictImpact>(
+    (sum, conflict) => ({
+      wastedBudgetTRY: sum.wastedBudgetTRY + conflict.impact.wastedBudgetTRY,
+      co2KgSaved: sum.co2KgSaved + conflict.impact.co2KgSaved,
+      roadMetersSaved: sum.roadMetersSaved + conflict.impact.roadMetersSaved,
+    }),
+    emptyImpact,
+  );
 
   const highCount = conflicts.filter((c) => c.severity === 'high').length;
   const summary =
@@ -126,5 +171,5 @@ export function detectConflicts(workOrders: WorkOrderInput[]): ConflictReport {
       ? 'Çatışma tespit edilmedi. Tüm iş emirleri güvenli şekilde planlanmış.'
       : `${conflicts.length} çatışma tespit edildi (${highCount} yüksek öncelikli).`;
 
-  return { summary, conflicts };
+  return { summary, conflicts, totalImpact };
 }
