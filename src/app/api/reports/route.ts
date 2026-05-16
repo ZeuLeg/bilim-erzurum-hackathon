@@ -3,8 +3,8 @@ import { reports } from '@/db/schema';
 import type { NewReport } from '@/types';
 import { NextResponse } from 'next/server';
 
-export function GET() {
-  const data = db.select().from(reports).all();
+export async function GET() {
+  const data = await db.select().from(reports);
   return NextResponse.json(data);
 }
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
-  const result = db
+  const result = await db
     .insert(reports)
     .values({
       title: body.title,
@@ -26,8 +26,7 @@ export async function POST(request: Request) {
       status: 'pending',
       createdAt: new Date(),
     })
-    .returning()
-    .get();
+    .returning();
 
-  return NextResponse.json(result, { status: 201 });
+  return NextResponse.json(result[0], { status: 201 });
 }

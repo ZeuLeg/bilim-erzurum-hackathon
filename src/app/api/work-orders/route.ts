@@ -3,8 +3,8 @@ import { workOrders } from '@/db/schema';
 import type { NewWorkOrder } from '@/types';
 import { NextResponse } from 'next/server';
 
-export function GET() {
-  const data = db.select().from(workOrders).all();
+export async function GET() {
+  const data = await db.select().from(workOrders);
   return NextResponse.json(data);
 }
 
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
-  const result = db
+  const result = await db
     .insert(workOrders)
     .values({
       departmentName: body.departmentName,
@@ -33,8 +33,7 @@ export async function POST(request: Request) {
       locationLng: body.locationLng,
       status: 'scheduled',
     })
-    .returning()
-    .get();
+    .returning();
 
-  return NextResponse.json(result, { status: 201 });
+  return NextResponse.json(result[0], { status: 201 });
 }
