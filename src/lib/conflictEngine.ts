@@ -37,9 +37,16 @@ export type DetectedConflict = {
   reason: string;
 };
 
+export type ConflictImpact = {
+  wastedBudgetTRY: number;
+  co2KgSaved: number;
+  roadMetersSaved: number;
+};
+
 export type ConflictReport = {
   summary: string;
   conflicts: DetectedConflict[];
+  totalImpact: ConflictImpact;
 };
 
 function includesAny(text: string, keywords: string[]): boolean {
@@ -126,5 +133,31 @@ export function detectConflicts(workOrders: WorkOrderInput[]): ConflictReport {
       ? 'Çatışma tespit edilmedi. Tüm iş emirleri güvenli şekilde planlanmış.'
       : `${conflicts.length} çatışma tespit edildi (${highCount} yüksek öncelikli).`;
 
-  return { summary, conflicts };
+  return {
+    summary,
+    conflicts,
+    totalImpact: calculateTotalImpact(conflicts),
+  };
+}
+
+function calculateTotalImpact(conflicts: DetectedConflict[]): ConflictImpact {
+  return conflicts.reduce(
+    (impact, conflict) => {
+      const severityMultiplier = conflict.severity === 'high' ? 1.5 : conflict.severity === 'medium' ? 1 : 0.6;
+      const dailyBudget = conflict.severity === 'high' ? 180000 : conflict.severity === 'medium' ? 90000 : 32000;
+      const dailyCo2 = conflict.severity === 'high' ? 1280 : conflict.severity === 'medium' ? 560 : 180;
+
+      return {
+        wastedBudgetTRY: impact.wastedBudgetTRY + Math.round(dailyBudget * conflict.overlapDays * severityMultiplier),
+        co2KgSaved: impact.co2KgSaved + Math.round(dailyCo2 * conflict.overlapDays),
+        roadMetersSaved:
+          impact.roadMetersSaved + Math.round(conflict.distanceMeters * Math.min(conflict.overlapDays, 3) * 0.8),
+      };
+    },
+    {
+      wastedBudgetTRY: 0,
+      co2KgSaved: 0,
+      roadMetersSaved: 0,
+    },
+  );
 }

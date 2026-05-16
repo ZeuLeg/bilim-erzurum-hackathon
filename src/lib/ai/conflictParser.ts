@@ -22,6 +22,9 @@ export type ConflictAlertDTO = {
   severity: 'low' | 'medium' | 'high';
   reason: string;
   budgetImpact?: string | number;
+  workOrderId?: number | string;
+  newStart?: string;
+  newEnd?: string;
 };
 
 export type ParsedConflictReport = {
@@ -81,6 +84,14 @@ function normalizeParsedReport(data: any): ParsedConflictReport | null {
           : item.budgetImpact != null
           ? String(item.budgetImpact)
           : undefined,
+      workOrderId:
+        typeof item.workOrderId === 'number'
+          ? item.workOrderId
+          : item.workOrderId != null
+          ? String(item.workOrderId)
+          : undefined,
+      newStart: typeof item.newStart === 'string' ? item.newStart : typeof item.newStartDate === 'string' ? item.newStartDate : undefined,
+      newEnd: typeof item.newEnd === 'string' ? item.newEnd : typeof item.newEndDate === 'string' ? item.newEndDate : undefined,
     }));
 
   return {

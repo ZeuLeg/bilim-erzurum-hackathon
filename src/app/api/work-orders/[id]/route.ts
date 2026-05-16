@@ -15,17 +15,32 @@ export async function GET(_req: Request, { params }: Params) {
 
 export async function PATCH(request: Request, { params }: Params) {
   const { id } = await params;
-  const body: { status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled' } =
-    await request.json();
+  const body: {
+    status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    plannedStartDate?: string;
+    plannedEndDate?: string;
+  } = await request.json();
 
   const allowed = ['scheduled', 'in_progress', 'completed', 'cancelled'];
   if (body.status && !allowed.includes(body.status)) {
     return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
   }
 
+  if (body.plannedStartDate && Number.isNaN(Date.parse(body.plannedStartDate))) {
+    return NextResponse.json({ error: 'Invalid plannedStartDate' }, { status: 400 });
+  }
+
+  if (body.plannedEndDate && Number.isNaN(Date.parse(body.plannedEndDate))) {
+    return NextResponse.json({ error: 'Invalid plannedEndDate' }, { status: 400 });
+  }
+
   const updated = await db
     .update(workOrders)
-    .set({ ...(body.status && { status: body.status }) })
+    .set({
+      ...(body.status && { status: body.status }),
+      ...(body.plannedStartDate && { plannedStartDate: new Date(body.plannedStartDate) }),
+      ...(body.plannedEndDate && { plannedEndDate: new Date(body.plannedEndDate) }),
+    })
     .where(eq(workOrders.id, Number(id)))
     .returning();
 

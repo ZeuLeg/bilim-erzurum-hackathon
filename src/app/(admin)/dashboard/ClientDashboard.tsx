@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
-import { useChat } from 'ai/react';
+import { useEffect, useMemo, useState } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { useChat } from '@ai-sdk/react';
 import { parseConflictReportFromText } from '@/lib/ai/conflictParser';
 import ConflictPanel from '@/components/shared/ConflictPanel';
+import StatCard from '@/components/ui/StatCard';
 
 type WorkOrderClient = {
   id: number;
@@ -15,6 +17,12 @@ type WorkOrderClient = {
   locationLat: number;
   locationLng: number;
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+};
+
+type ConflictImpact = {
+  wastedBudgetTRY: number;
+  co2KgSaved: number;
+  roadMetersSaved: number;
 };
 
 interface ClientDashboardProps {
@@ -45,19 +53,120 @@ function formatOrderDateRange(start: string, end: string) {
   })}`;
 }
 
+type MessagePart = { type: string; text?: string };
+
+function getMessageText(message: { parts?: MessagePart[]; content?: string }) {
+  if (Array.isArray(message.parts)) {
+    return message.parts
+      .filter((part): part is MessagePart & { text: string } => part.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text)
+      .join('');
+  }
+
+  return typeof message.content === 'string' ? message.content : '';
+}
+
 export default function ClientDashboard({ workOrders, pendingReportsCount, totalWorkOrders }: ClientDashboardProps) {
-  const { messages, append, isLoading, error } = useChat({ api: '/api/agent' });
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/agent' }),
+  });
+
+  const isLoading = status === 'submitted' || status === 'streaming';
+
+  const [conflictImpact, setConflictImpact] = useState<ConflictImpact | null>(null);
+  const [impactLoading, setImpactLoading] = useState(false);
+  const [impactError, setImpactError] = useState<string | null>(null);
+
+  const fetchConflictImpact = async () => {
+    setImpactLoading(true);
+    setImpactError(null);
+    try {
+      const response = await fetch('/api/conflicts');
+      if (!response.ok) throw new Error('Çakışma verisi alınamadı');
+      const data = await response.json();
+      if (data?.totalImpact) {
+        setConflictImpact(data.totalImpact);
+      } else {
+        setConflictImpact({ wastedBudgetTRY: 0, co2KgSaved: 0, roadMetersSaved: 0 });
+      }
+    } catch (error) {
+      setImpactError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setImpactLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchConflictImpact();
+  }, []);
 
   const highSeverityCount = useMemo(() => {
     return messages.reduce((count, message) => {
-      if (message.role !== 'assistant' || typeof message.content !== 'string') return count;
-      const parsed = parseConflictReportFromText(message.content);
+      const text = getMessageText(message);
+      if (message.role !== 'assistant' || !text) return count;
+      const parsed = parseConflictReportFromText(text);
       return count + (parsed?.conflicts.filter((conflict) => conflict.severity === 'high').length ?? 0);
     }, 0);
   }, [messages]);
 
   const handleRunAnalysis = async () => {
-    await append({ role: 'user', content: ANALYSIS_PROMPT });
+    await sendMessage({ text: ANALYSIS_PROMPT });
+  };
+
+  const workOrderConflictKeys = useMemo(() => {
+    const keys = new Set<string>();
+
+    messages.forEach((message) => {
+      if (message.role !== 'assistant') return;
+      const text = getMessageText(message);
+      if (!text) return;
+      const parsed = parseConflictReportFromText(text);
+      parsed?.conflicts.forEach((conflict) => {
+        const keyA = `${conflict.workOrderA.departmentName}|${conflict.workOrderA.plannedStartDate}|${conflict.workOrderA.plannedEndDate}`;
+        const keyB = `${conflict.workOrderB.departmentName}|${conflict.workOrderB.plannedStartDate}|${conflict.workOrderB.plannedEndDate}`;
+        keys.add(keyA);
+        keys.add(keyB);
+      });
+    });
+
+    return keys;
+  }, [messages]);
+
+  const timelineRange = useMemo(() => {
+    if (workOrders.length === 0) return null;
+    const dates = workOrders
+      .map((order) => [new Date(order.plannedStartDate), new Date(order.plannedEndDate)])
+      .flat();
+    const validDates = dates.filter((date) => !Number.isNaN(date.getTime()));
+    if (validDates.length === 0) return null;
+
+    const earliest = new Date(Math.min(...validDates.map((date) => date.getTime())));
+    const monthStart = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+    const monthLabel = monthStart.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+
+    return { monthStart, monthLabel };
+  }, [workOrders]);
+
+  const getTimelinePosition = (dateString: string) => {
+    const date = new Date(dateString);
+    if (!timelineRange || Number.isNaN(date.getTime())) return 1;
+    const day = date.getDate();
+    return Math.max(1, Math.min(30, day));
+  };
+
+  const getOrderBarStyle = (order: WorkOrderClient) => {
+    const start = getTimelinePosition(order.plannedStartDate);
+    const end = getTimelinePosition(order.plannedEndDate);
+    const width = Math.max(6, ((end - start + 1) / 30) * 100);
+    return {
+      left: `${((start - 1) / 30) * 100}%`,
+      width: `${width}%`,
+    };
+  };
+
+  const isOrderInConflict = (order: WorkOrderClient) => {
+    const key = `${order.departmentName}|${order.plannedStartDate}|${order.plannedEndDate}`;
+    return workOrderConflictKeys.has(key);
   };
 
   return (
@@ -98,6 +207,44 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
           </div>
         </div>
 
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+          <StatCard
+            emoji="💰"
+            label="AI Çakışma Önleme Etkisi"
+            value={
+              impactLoading
+                ? '...'
+                : `₺${conflictImpact ? conflictImpact.wastedBudgetTRY.toLocaleString('tr-TR') : '0'}`
+            }
+            caption={impactLoading ? 'Yükleniyor...' : 'Önlenebilir bütçe tasarrufu'}
+          />
+          <StatCard
+            emoji="🌱"
+            label="CO₂ Tasarrufu"
+            value={
+              impactLoading
+                ? '...'
+                : `${conflictImpact ? conflictImpact.co2KgSaved.toLocaleString('tr-TR') : '0'} kg`
+            }
+            caption={impactLoading ? 'Yükleniyor...' : 'Tahmini karbon azaltımı'}
+          />
+          <StatCard
+            emoji="🛣️"
+            label="Yol Kurtarımı"
+            value={
+              impactLoading
+                ? '...'
+                : `${conflictImpact ? conflictImpact.roadMetersSaved.toLocaleString('tr-TR') : '0'} m`
+            }
+            caption={impactLoading ? 'Yükleniyor...' : 'Çakışma nedeniyle kurtarılacak yol'}
+          />
+        </div>
+        {impactError ? (
+          <div className="mt-4 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            {impactError}
+          </div>
+        ) : null}
+
         <div className="mt-8 flex flex-col gap-6 lg:flex-row">
           <div className="flex-1 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -115,6 +262,37 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
               </button>
             </div>
             <div className="space-y-4">
+              {timelineRange ? (
+                <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500">Zaman Çizgisi</p>
+                      <p className="mt-1 text-sm text-slate-900">{timelineRange.monthLabel}</p>
+                    </div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">1 5 10 15 20 25 30</div>
+                  </div>
+                  <div className="space-y-4">
+                    {workOrders.map((order) => {
+                      const style = getOrderBarStyle(order);
+                      return (
+                        <div key={order.id} className="space-y-2">
+                          <div className="flex items-center justify-between gap-4 text-sm text-slate-600">
+                            <span>{order.departmentName}</span>
+                            <span>{formatOrderDateRange(order.plannedStartDate, order.plannedEndDate)}</span>
+                          </div>
+                          <div className="relative h-10 overflow-hidden rounded-2xl bg-slate-200">
+                            <div
+                              className={`absolute inset-y-1 rounded-2xl ${isOrderInConflict(order) ? 'bg-rose-500' : 'bg-sky-600'}`}
+                              style={style}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
               {workOrders.length > 0 ? (
                 workOrders.map((order) => (
                   <article key={order.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
@@ -149,7 +327,12 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
             <h2 className="text-lg font-semibold text-slate-900">AI Sonuç Paneli</h2>
             <p className="mt-1 text-sm text-slate-500">Yapay zeka çakışma analizini çalıştırdığınızda burada sonuçlar gözükecek.</p>
             <div className="mt-6">
-              <ConflictPanel messages={messages} isLoading={isLoading} chatError={error} />
+              <ConflictPanel
+                messages={messages}
+                isLoading={isLoading}
+                chatError={error}
+                onRescheduleSuccess={fetchConflictImpact}
+              />
             </div>
           </aside>
         </div>

@@ -19,6 +19,7 @@ export const CONFLICT_DETECTION_SYSTEM_PROMPT =
   + '- `overlapDays`\n'
   + '- `severity` (low | medium | high)\n'
   + '- `reason`\n'
-  + '- `budgetImpact` (estimated cost impact in TL or descriptive string, if available)\n\n'
+  + '- `budgetImpact` (estimated cost impact in TL or descriptive string, if available)\n'
+  + '- If you recommend rescheduling a work order, include `workOrderId`, `newStart`, and `newEnd` on the relevant conflict object.\n\n'
   + 'If there are no conflicts, return `{ "summary": "No conflicts detected.", "conflicts": [] }`.\n'
   + 'Be concise, factual, and actionable. Format your response as a structured conflict report.';

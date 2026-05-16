@@ -24,10 +24,7 @@ export async function POST(request: Request) {
     system: CONFLICT_DETECTION_SYSTEM_PROMPT,
     messages,
     tools: agentTools,
-    maxSteps: 5,
   });
 
-  return result.toDataStreamResponse({
-    getErrorMessage: (error) => (error instanceof Error ? error.message : String(error)),
-  });
+  return result.toTextStreamResponse();
 }

@@ -1,16 +1,41 @@
 'use client';
 
-import { parseConflictReportFromText } from '@/lib/ai/conflictParser';
+import { useState } from 'react';
+import { parseConflictReportFromText, type ConflictAlertDTO } from '@/lib/ai/conflictParser';
+
+type MessagePart = {
+  type: string;
+  text?: string;
+};
 
 type AgentMessage = {
   role: 'user' | 'assistant' | 'system' | 'tool' | 'data';
-  content: string;
+  content?: string;
+  parts?: MessagePart[];
 };
 
 interface ConflictPanelProps {
   messages: AgentMessage[];
   isLoading: boolean;
   chatError?: Error;
+  onRescheduleSuccess?: () => void;
+}
+
+type ActionStatus = {
+  pendingKey: string | null;
+  message: string | null;
+  error: string | null;
+};
+
+function getMessageText(message: AgentMessage) {
+  if (Array.isArray(message.parts)) {
+    return message.parts
+      .filter((part): part is MessagePart & { text: string } => part.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text)
+      .join('');
+  }
+
+  return typeof message.content === 'string' ? message.content : '';
 }
 
 function formatMessageContent(content: string): string {
@@ -43,7 +68,51 @@ function getRoleLabel(role: AgentMessage['role']): string {
   }
 }
 
-export default function ConflictPanel({ messages, isLoading, chatError }: ConflictPanelProps) {
+export default function ConflictPanel({ messages, isLoading, chatError, onRescheduleSuccess }: ConflictPanelProps) {
+  const [actionStatus, setActionStatus] = useState<ActionStatus>({
+    pendingKey: null,
+    message: null,
+    error: null,
+  });
+
+  const handleReschedule = async (
+    conflict: ConflictAlertDTO,
+    key: string,
+  ) => {
+    if (!conflict.workOrderId || !conflict.newStart || !conflict.newEnd) return;
+
+    setActionStatus({ pendingKey: key, message: null, error: null });
+
+    try {
+      const response = await fetch(`/api/work-orders/${conflict.workOrderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plannedStartDate: conflict.newStart,
+          plannedEndDate: conflict.newEnd,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Yeniden planlama başarısız oldu.');
+      }
+
+      setActionStatus({
+        pendingKey: null,
+        message: 'Yeniden planlama başarıyla uygulandı.',
+        error: null,
+      });
+      onRescheduleSuccess?.();
+    } catch (error) {
+      setActionStatus({
+        pendingKey: null,
+        message: null,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center">
@@ -74,10 +143,11 @@ export default function ConflictPanel({ messages, isLoading, chatError }: Confli
   return (
     <div className="space-y-4">
       {messages.map((message, index) => {
-        const content = formatMessageContent(message.content);
+        const text = getMessageText(message);
+        const content = formatMessageContent(text);
         const parsedReport =
-          message.role === 'assistant' && typeof message.content === 'string'
-            ? parseConflictReportFromText(message.content)
+          message.role === 'assistant' && text
+            ? parseConflictReportFromText(text)
             : null;
         const hasHighConflict = parsedReport?.conflicts.some((conflict) => conflict.severity === 'high');
         const bgClass = hasHighConflict ? 'bg-rose-50 border-rose-200' : 'bg-white border-slate-200';
@@ -155,6 +225,26 @@ export default function ConflictPanel({ messages, isLoading, chatError }: Confli
                                 ? `${conflict.budgetImpact.toLocaleString('tr-TR')} TL`
                                 : conflict.budgetImpact
                             }</p>
+                          </div>
+                        ) : null}
+                        {conflict.workOrderId && conflict.newStart && conflict.newEnd ? (
+                          <div className="mt-4 flex flex-col gap-3">
+                            <button
+                              type="button"
+                              onClick={() => handleReschedule(conflict, `${message.role}-${index}-${conflictIndex}`)}
+                              disabled={actionStatus.pendingKey === `${message.role}-${index}-${conflictIndex}`}
+                              className="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {actionStatus.pendingKey === `${message.role}-${index}-${conflictIndex}`
+                                ? 'Yeniden planlanıyor...'
+                                : 'Yeniden Planla'}
+                            </button>
+                            {actionStatus.message && actionStatus.pendingKey === null ? (
+                              <p className="text-sm text-emerald-700">{actionStatus.message}</p>
+                            ) : null}
+                            {actionStatus.error ? (
+                              <p className="text-sm text-rose-700">{actionStatus.error}</p>
+                            ) : null}
                           </div>
                         ) : null}
                       </div>
