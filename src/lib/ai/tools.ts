@@ -11,7 +11,7 @@ export const getDetectedConflictsTool = tool({
     'returns pre-computed conflicts with EXACT distanceMeters, overlapDays, ' +
     'severity and estimated impact (wastedBudgetTRY, co2KgSaved). Call this first ' +
     'and trust its numbers — never compute distance or date overlap yourself.',
-  parameters: z.object({}),
+  inputSchema: z.object({}),
   execute: async () => {
     const data = await db.select().from(workOrders);
     return detectConflicts(data);
@@ -21,7 +21,7 @@ export const getDetectedConflictsTool = tool({
 export const getWorkOrdersTool = tool({
   description:
     'Retrieves all scheduled municipal work orders including department name, dates, location coordinates, and status.',
-  parameters: z.object({}),
+  inputSchema: z.object({}),
   execute: async () => {
     const data = await db.select().from(workOrders);
     return data.map((wo) => ({
@@ -35,7 +35,7 @@ export const getWorkOrdersTool = tool({
 export const getCitizenReportsTool = tool({
   description:
     'Retrieves all citizen-submitted infrastructure reports, including title, description, status, and GPS coordinates.',
-  parameters: z.object({
+  inputSchema: z.object({
     status: z
       .enum(['pending', 'in_progress', 'resolved', 'all'])
       .optional()

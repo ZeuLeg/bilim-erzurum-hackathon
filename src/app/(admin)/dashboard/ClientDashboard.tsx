@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { parseConflictReportFromText } from '@/lib/ai/conflictParser';
 import ConflictPanel from '@/components/shared/ConflictPanel';
 
@@ -46,18 +47,34 @@ function formatOrderDateRange(start: string, end: string) {
 }
 
 export default function ClientDashboard({ workOrders, pendingReportsCount, totalWorkOrders }: ClientDashboardProps) {
-  const { messages, append, isLoading, error } = useChat({ api: '/api/agent' });
+  const { messages, sendMessage, status, error } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/agent' }),
+  });
+  const isLoading = status === 'submitted' || status === 'streaming';
+
+  // ai v6 messages are parts-based — flatten each to plain { role, content } text.
+  const textMessages = useMemo(
+    () =>
+      messages.map((message) => ({
+        role: message.role,
+        content: message.parts
+          .filter((part) => part.type === 'text')
+          .map((part) => part.text)
+          .join(''),
+      })),
+    [messages],
+  );
 
   const highSeverityCount = useMemo(() => {
-    return messages.reduce((count, message) => {
-      if (message.role !== 'assistant' || typeof message.content !== 'string') return count;
+    return textMessages.reduce((count, message) => {
+      if (message.role !== 'assistant') return count;
       const parsed = parseConflictReportFromText(message.content);
       return count + (parsed?.conflicts.filter((conflict) => conflict.severity === 'high').length ?? 0);
     }, 0);
-  }, [messages]);
+  }, [textMessages]);
 
   const handleRunAnalysis = async () => {
-    await append({ role: 'user', content: ANALYSIS_PROMPT });
+    await sendMessage({ text: ANALYSIS_PROMPT });
   };
 
   return (
@@ -149,7 +166,7 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
             <h2 className="text-lg font-semibold text-slate-900">AI Sonuç Paneli</h2>
             <p className="mt-1 text-sm text-slate-500">Yapay zeka çakışma analizini çalıştırdığınızda burada sonuçlar gözükecek.</p>
             <div className="mt-6">
-              <ConflictPanel messages={messages} isLoading={isLoading} chatError={error} />
+              <ConflictPanel messages={textMessages} isLoading={isLoading} chatError={error} />
             </div>
           </aside>
         </div>

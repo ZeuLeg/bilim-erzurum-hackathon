@@ -1,14 +1,14 @@
 // AI Agent endpoint — streaming conflict detection
 // Branch: feat/admin-ai — Owner: Ozan Osman Akan
 import { google } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages, stepCountIs, type UIMessage } from 'ai';
 import { CONFLICT_DETECTION_SYSTEM_PROMPT } from '@/lib/ai/prompts';
 import { agentTools } from '@/lib/ai/tools';
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  let messages;
+  let messages: UIMessage[];
   try {
     ({ messages } = await request.json());
   } catch {
@@ -22,12 +22,12 @@ export async function POST(request: Request) {
   const result = streamText({
     model: google('gemini-2.5-flash'),
     system: CONFLICT_DETECTION_SYSTEM_PROMPT,
-    messages,
+    messages: await convertToModelMessages(messages),
     tools: agentTools,
-    maxSteps: 5,
+    stopWhen: stepCountIs(5),
   });
 
-  return result.toDataStreamResponse({
-    getErrorMessage: (error) => (error instanceof Error ? error.message : String(error)),
+  return result.toUIMessageStreamResponse({
+    onError: (error) => (error instanceof Error ? error.message : String(error)),
   });
 }
