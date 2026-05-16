@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { reports, workOrders } from '@/db/schema';
 
@@ -29,7 +30,11 @@ export const getCitizenReportsTool = tool({
   }),
   execute: async ({ status }) => {
     const query = db.select().from(reports);
-    const data = status === 'all' ? query.all() : query.where().all();
+    const data =
+      status === 'all'
+        ? query.all()
+        : query.where(eq(reports.status, status)).all();
+
     return data.map((r) => ({
       ...r,
       createdAt: r.createdAt.toISOString(),
