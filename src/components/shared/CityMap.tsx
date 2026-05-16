@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { Report, WorkOrder } from "@/types";
 
 interface CityMapProps {
@@ -23,10 +24,6 @@ export default function CityMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
-
-  useEffect(() => {
-    import("leaflet/dist/leaflet.css");
-  }, []);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
