@@ -7,7 +7,7 @@ async function getWorkOrders() {
 }
 
 async function getPendingReportsCount(): Promise<number> {
-  const allReports = db.select().from(reports).all();
+  const allReports = await db.select().from(reports).all();
   return allReports.filter((r) => r.status === 'pending').length;
 }
 
