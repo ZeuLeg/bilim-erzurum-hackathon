@@ -10,6 +10,7 @@ type AgentMessage = {
 interface ConflictPanelProps {
   messages: AgentMessage[];
   isLoading: boolean;
+  chatError?: Error;
 }
 
 function formatMessageContent(content: string): string {
@@ -42,13 +43,22 @@ function getRoleLabel(role: AgentMessage['role']): string {
   }
 }
 
-export default function ConflictPanel({ messages, isLoading }: ConflictPanelProps) {
+export default function ConflictPanel({ messages, isLoading, chatError }: ConflictPanelProps) {
   if (isLoading) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
         <p className="text-sm font-semibold text-slate-900">AI analiz ediyor...</p>
         <p className="mt-2 text-sm text-slate-500">Conflict detection için iş emirlerini ve konum verilerini inceliyor.</p>
+      </div>
+    );
+  }
+
+  if (chatError) {
+    return (
+      <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center text-sm text-amber-900">
+        <p className="font-semibold">AI ile iletişimde bir sorun oluştu.</p>
+        <p className="mt-2 text-sm">{chatError.message || 'Lütfen sayfayı yenileyin ve tekrar deneyin.'}</p>
       </div>
     );
   }
@@ -137,6 +147,16 @@ export default function ConflictPanel({ messages, isLoading }: ConflictPanelProp
                             <p className="text-sm font-semibold text-slate-900">{conflict.reason}</p>
                           </div>
                         </div>
+                        {conflict.budgetImpact != null ? (
+                          <div className="mt-4 rounded-2xl bg-slate-100 p-3 text-sm text-slate-800">
+                            <p className="font-semibold">Tahmini bütçe etkisi</p>
+                            <p>{
+                              typeof conflict.budgetImpact === 'number'
+                                ? `${conflict.budgetImpact.toLocaleString('tr-TR')} TL`
+                                : conflict.budgetImpact
+                            }</p>
+                          </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
