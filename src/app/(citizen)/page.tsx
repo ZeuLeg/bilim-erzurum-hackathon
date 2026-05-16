@@ -1,171 +1,192 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { MapPin, ShieldCheck, Sparkles } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import type { Report, WorkOrder, ConflictAlert } from "@/types";
-import ReportForm from "@/components/shared/ReportForm";
+import { useEffect, useState } from "react";
+import { Sparkles, MapPin, Shield, Leaf, ArrowRight, Zap } from "lucide-react";
 
-const CityMap = dynamic(() => import("@/components/shared/CityMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center rounded-3xl border border-slate-200 bg-white text-sm text-slate-500 shadow-sm">
-      Harita yükleniyor…
-    </div>
-  ),
-});
+type TotalImpact = {
+  wastedBudgetTRY: number;
+  co2KgSaved: number;
+  roadMetersSaved: number;
+};
 
-const initialReports: Report[] = [];
-const initialWorkOrders: WorkOrder[] = [];
-
-export default function CitizenPage() {
-  const [reports, setReports] = useState<Report[]>(initialReports);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialWorkOrders);
-  const [conflicts, setConflicts] = useState<ConflictAlert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] = useState<
-    { locationLat: number; locationLng: number } | undefined
-  >(undefined);
-
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const [reportsRes, workOrdersRes] = await Promise.all([
-        fetch("/api/reports"),
-        fetch("/api/work-orders"),
-      ]);
-
-      if (!reportsRes.ok || !workOrdersRes.ok) {
-        throw new Error("Veri alınırken bir hata oluştu.");
-      }
-
-      const reportsData: Report[] = await reportsRes.json();
-      const workOrdersData: WorkOrder[] = await workOrdersRes.json();
-
-      setReports(reportsData);
-      setWorkOrders(workOrdersData);
-    } catch (caught) {
-      const nextError =
-        caught instanceof Error
-          ? caught.message
-          : "Bilinmeyen bir hata oluştu.";
-      setError(nextError);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+export default function LandingPage() {
+  const [impact, setImpact] = useState<TotalImpact | null>(null);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/conflicts");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted) return;
-        setConflicts(Array.isArray(data?.conflicts) ? data.conflicts : []);
-      } catch (err) {
-        console.error("Failed to fetch conflicts", err);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    fetch("/api/conflicts")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.totalImpact) setImpact(data.totalImpact); })
+      .catch(() => {});
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <header className="border-b bg-white px-6 py-5 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow">
-              <Sparkles className="h-5 w-5" />
+    <main className="min-h-screen bg-white">
+      {/* Nav */}
+      <nav className="border-b border-slate-100 bg-white/80 px-6 py-4 backdrop-blur-sm sticky top-0 z-10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                CitySync AI
-              </p>
-              <h1 className="text-2xl font-semibold text-slate-900">
-                Vatandaş Portalı
-              </h1>
-            </div>
+            <span className="text-lg font-semibold text-slate-900">CitySync AI</span>
           </div>
-          <div className="flex items-center gap-3 text-sm text-slate-600">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            <span>Erzurum Belediyesi</span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/report"
+              className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+            >
+              Sorun Bildir
+            </Link>
             <Link
               href="/dashboard"
-              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 transition hover:border-blue-300 hover:bg-blue-50"
+              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
             >
-              Admin Sayfası
+              Admin Paneli
             </Link>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <div className="mx-auto flex min-h-[calc(100vh-88px)] max-w-[1480px] flex-col gap-6 px-4 py-6 lg:flex-row lg:px-6">
-        <section className="min-h-[60vh] flex-1 overflow-hidden rounded-[28px] bg-white p-4 shadow-sm lg:min-h-[calc(100vh-220px)]">
-          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">
-                Şehir Haritası
-              </p>
-              <h2 className="text-xl font-semibold text-slate-900">
-                Altyapı raporlarını ve iş emirlerini haritada görüntüleyin
-              </h2>
-            </div>
-            <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
-              {loading
-                ? "Veri yükleniyor…"
-                : `${reports.length} rapor, ${workOrders.length} iş emri`}
-            </div>
+      {/* Hero */}
+      <section className="px-6 pb-20 pt-24 text-center">
+        <div className="mx-auto max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-700">
+            <Zap className="h-3 w-3" />
+            Gemini 2.5 Flash ile güçlendirildi
+          </span>
+          <h1 className="mt-6 text-5xl font-bold tracking-tight text-slate-900 lg:text-6xl">
+            Erzurum&rsquo;da altyapı<br />
+            <span className="text-blue-600">çalışmaları artık</span><br />
+            çakışmıyor.
+          </h1>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-slate-500">
+            CitySync AI, aynı caddeyi iki kez kazmayı önler. Yapay zeka destekli
+            belediye koordinasyonu ile milyonlarca liralık kaynak israfını ve
+            binlerce kilogram karbon emisyonunu engelleyin.
+          </p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <Link
+              href="/report"
+              className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+            >
+              Sorun Bildir
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+              Admin Paneline Git
+            </Link>
           </div>
+        </div>
+      </section>
 
-          {error ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {error}
+      {/* Live impact banner */}
+      {impact && (
+        <section className="border-y border-emerald-100 bg-gradient-to-r from-emerald-50 to-sky-50 px-6 py-12">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-emerald-700">
+              Bu sezon AI tarafından önlenen israf
+            </p>
+            <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
+              <div>
+                <p className="text-4xl font-bold text-slate-900">
+                  ₺{impact.wastedBudgetTRY.toLocaleString("tr-TR")}
+                </p>
+                <p className="mt-2 text-sm text-slate-500">önlenebilir bütçe kaybı</p>
+              </div>
+              <div>
+                <p className="text-4xl font-bold text-slate-900">
+                  {impact.co2KgSaved.toLocaleString("tr-TR")} kg
+                </p>
+                <p className="mt-2 text-sm text-slate-500">CO₂ azaltma</p>
+              </div>
+              <div>
+                <p className="text-4xl font-bold text-slate-900">
+                  {impact.roadMetersSaved.toLocaleString("tr-TR")} m
+                </p>
+                <p className="mt-2 text-sm text-slate-500">kurtarılan yol</p>
+              </div>
             </div>
-          ) : null}
-
-          <div className="h-[60vh] sm:h-[65vh] lg:h-[calc(100vh-220px)]">
-            <CityMap
-              reports={reports}
-              workOrders={workOrders}
-              conflicts={conflicts}
-              onLocationSelect={setSelectedLocation}
-            />
           </div>
         </section>
+      )}
 
-        <aside className="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:w-[320px]">
-          <div className="mb-6 space-y-3">
-            <div className="flex items-center gap-3 text-slate-900">
-              <ShieldCheck className="h-5 w-5 text-blue-600" />
-              <h2 className="text-lg font-semibold">Sorun Bildir</h2>
+      {/* Features */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl font-bold text-slate-900">
+            Nasıl çalışır?
+          </h2>
+          <div className="mt-12 grid gap-8 lg:grid-cols-3">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
+                <Zap className="h-6 w-6" />
+              </div>
+              <h3 className="mt-6 text-lg font-semibold text-slate-900">
+                Yapay Zeka Çakışma Tespiti
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                Gemini destekli motor, planlanmış tüm iş emirlerini anlık olarak
+                tarar. 300 metre yakınlık ve tarih örtüşmesini saniyeler içinde
+                tespit eder.
+              </p>
             </div>
-            <p className="text-sm text-slate-500">
-              Şehrin herhangi bir yerine tıklayarak rapor konumunu seçebilir,
-              ardından sorunu bildirebilirsiniz.
-            </p>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <Leaf className="h-6 w-6" />
+              </div>
+              <h3 className="mt-6 text-lg font-semibold text-slate-900">
+                Ölçülebilir Sürdürülebilirlik
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                Her önlenen çakışma ortalama 1.600.000 TL tasarruf ve 25.000 kg
+                CO₂ azaltması sağlar. Etki gerçek zamanlı olarak raporlanır.
+              </p>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+                <Shield className="h-6 w-6" />
+              </div>
+              <h3 className="mt-6 text-lg font-semibold text-slate-900">
+                Vatandaş Katılımı
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                Harita üzerinden sorun bildirin. Raporunuz doğrudan ilgili
+                müdürlüğe yönlendirilir ve altyapı planlamasını şekillendirir.
+              </p>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <ReportForm
-            selectedLocation={selectedLocation}
-            onLocationChange={setSelectedLocation}
-            onSubmit={fetchData}
-          />
-        </aside>
-      </div>
+      {/* CTA */}
+      <section className="bg-slate-900 px-6 py-20 text-center">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-3xl font-bold text-white">
+            Şehrini daha iyi hale getir
+          </h2>
+          <p className="mt-4 text-slate-400">
+            Bölgendeki altyapı sorunlarını haritaya ekle. Her rapor, bir sonraki
+            israfı önlemeye katkıda bulunur.
+          </p>
+          <Link
+            href="/report"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-blue-500 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-400"
+          >
+            <MapPin className="h-4 w-4" />
+            Sorun Bildir
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-100 px-6 py-8 text-center text-xs text-slate-400">
+        Erzurum Büyükşehir Belediyesi &middot; 2026 Yapay Zeka ve Sürdürülebilir Kalkınma Hackathonu
+        &middot; <span className="text-blue-500">Team Zetora</span>
+      </footer>
     </main>
   );
 }
