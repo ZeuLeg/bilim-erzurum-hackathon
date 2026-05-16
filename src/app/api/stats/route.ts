@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { reports, workOrders } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
