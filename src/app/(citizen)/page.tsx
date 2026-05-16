@@ -1,30 +1,147 @@
-// Citizen Portal — public map view + infrastructure report form
-// Branch: feat/citizen — Owner: Hüseyin Taha Adanur
+"use client";
+
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { MapPin, ShieldCheck, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import type { Report, WorkOrder } from "@/types";
+import ReportForm from "@/components/shared/ReportForm";
+
+const CityMap = dynamic(() => import("@/components/shared/CityMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center rounded-3xl border border-slate-200 bg-white text-sm text-slate-500 shadow-sm">
+      Harita yükleniyor…
+    </div>
+  ),
+});
+
+const initialReports: Report[] = [];
+const initialWorkOrders: WorkOrder[] = [];
+
 export default function CitizenPage() {
+  const [reports, setReports] = useState<Report[]>(initialReports);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialWorkOrders);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<
+    { locationLat: number; locationLng: number } | undefined
+  >(undefined);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [reportsRes, workOrdersRes] = await Promise.all([
+        fetch("/api/reports"),
+        fetch("/api/work-orders"),
+      ]);
+
+      if (!reportsRes.ok || !workOrdersRes.ok) {
+        throw new Error("Veri alınırken bir hata oluştu.");
+      }
+
+      const reportsData: Report[] = await reportsRes.json();
+      const workOrdersData: WorkOrder[] = await workOrdersRes.json();
+
+      setReports(reportsData);
+      setWorkOrders(workOrdersData);
+    } catch (caught) {
+      const nextError =
+        caught instanceof Error
+          ? caught.message
+          : "Bilinmeyen bir hata oluştu.";
+      setError(nextError);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   return (
-    <main className="flex min-h-screen flex-col">
-      <header className="border-b bg-white px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-sm">
-            CS
+    <main className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white px-6 py-5 shadow-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                CitySync AI
+              </p>
+              <h1 className="text-2xl font-semibold text-slate-900">
+                Vatandaş Portalı
+              </h1>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">CitySync AI</h1>
-            <p className="text-xs text-gray-500">Erzurum Municipal Platform</p>
+          <div className="flex items-center gap-3 text-sm text-slate-600">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <span>Erzurum Belediyesi</span>
+            <Link
+              href="/dashboard"
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-700 transition hover:border-blue-300 hover:bg-blue-50"
+            >
+              Admin Sayfası
+            </Link>
           </div>
         </div>
       </header>
 
-      <div className="flex flex-1">
-        {/* Map area — replace with <CityMap /> component */}
-        <div className="flex-1 bg-gray-100 flex items-center justify-center">
-          <p className="text-gray-400 text-sm">Map component goes here</p>
-        </div>
+      <div className="mx-auto flex min-h-[calc(100vh-88px)] max-w-[1480px] gap-6 px-6 py-6">
+        <section className="flex-1 overflow-hidden rounded-[28px] bg-white p-4 shadow-sm">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Şehir Haritası
+              </p>
+              <h2 className="text-xl font-semibold text-slate-900">
+                Altyapı raporlarını ve iş emirlerini haritada görüntüleyin
+              </h2>
+            </div>
+            <div className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
+              {loading
+                ? "Veri yükleniyor…"
+                : `${reports.length} rapor, ${workOrders.length} iş emri`}
+            </div>
+          </div>
 
-        {/* Report form sidebar — replace with <ReportForm /> component */}
-        <aside className="w-80 border-l bg-white p-6">
-          <h2 className="text-base font-semibold mb-4">Report an Issue</h2>
-          <p className="text-sm text-gray-500">Form component goes here</p>
+          {error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="h-[calc(100vh-220px)]">
+            <CityMap
+              reports={reports}
+              workOrders={workOrders}
+              onLocationSelect={setSelectedLocation}
+            />
+          </div>
+        </section>
+
+        <aside className="w-[280px] flex-shrink-0 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-6 space-y-3">
+            <div className="flex items-center gap-3 text-slate-900">
+              <ShieldCheck className="h-5 w-5 text-blue-600" />
+              <h2 className="text-lg font-semibold">Sorun Bildir</h2>
+            </div>
+            <p className="text-sm text-slate-500">
+              Şehrin herhangi bir yerine tıklayarak rapor konumunu seçebilir,
+              ardından sorunu bildirebilirsiniz.
+            </p>
+          </div>
+
+          <ReportForm
+            selectedLocation={selectedLocation}
+            onLocationChange={setSelectedLocation}
+            onSubmit={fetchData}
+          />
         </aside>
       </div>
     </main>
