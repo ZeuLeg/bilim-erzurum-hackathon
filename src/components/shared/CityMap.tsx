@@ -93,6 +93,13 @@ export default function CityMap({
           </div>`,
         );
 
+        marker.on("click", () => {
+          onLocationSelect?.({
+            locationLat: report.locationLat,
+            locationLng: report.locationLng,
+          });
+        });
+
         markersRef.current.push(marker);
       }
     });
@@ -120,15 +127,34 @@ export default function CityMap({
           </div>`,
         );
 
+        marker.on("click", () => {
+          onLocationSelect?.({
+            locationLat: workOrder.locationLat,
+            locationLng: workOrder.locationLng,
+          });
+        });
+
         markersRef.current.push(marker);
       }
     });
-  }, [reports, workOrders]);
+  }, [reports, workOrders, onLocationSelect]);
 
   return (
-    <div
-      className="h-full w-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm"
-      ref={containerRef}
-    />
+    <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
+      <div className="absolute right-4 top-4 z-10 max-w-[240px] rounded-2xl border border-slate-200 bg-white/90 p-3 text-sm shadow-sm backdrop-blur-sm sm:max-w-[280px]">
+        <p className="font-semibold text-slate-900">Harita Açıklaması</p>
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-red-500" />
+            <span>İhbar</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-blue-500" />
+            <span>İş emri</span>
+          </div>
+        </div>
+      </div>
+      <div className="h-full w-full" ref={containerRef} />
+    </div>
   );
 }
