@@ -92,9 +92,9 @@ export default function CitizenPage() {
         </div>
       </header>
 
-      <div className="mx-auto flex min-h-[calc(100vh-88px)] max-w-[1480px] gap-6 px-6 py-6">
-        <section className="flex-1 overflow-hidden rounded-[28px] bg-white p-4 shadow-sm">
-          <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mx-auto flex min-h-[calc(100vh-88px)] max-w-[1480px] flex-col gap-6 px-4 py-6 lg:flex-row lg:px-6">
+        <section className="min-h-[60vh] flex-1 overflow-hidden rounded-[28px] bg-white p-4 shadow-sm lg:min-h-[calc(100vh-220px)]">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">
                 Şehir Haritası
@@ -116,7 +116,7 @@ export default function CitizenPage() {
             </div>
           ) : null}
 
-          <div className="h-[calc(100vh-220px)]">
+          <div className="h-[60vh] sm:h-[65vh] lg:h-[calc(100vh-220px)]">
             <CityMap
               reports={reports}
               workOrders={workOrders}
@@ -125,7 +125,7 @@ export default function CitizenPage() {
           </div>
         </section>
 
-        <aside className="w-[280px] flex-shrink-0 rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <aside className="w-full rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm lg:w-[320px]">
           <div className="mb-6 space-y-3">
             <div className="flex items-center gap-3 text-slate-900">
               <ShieldCheck className="h-5 w-5 text-blue-600" />
