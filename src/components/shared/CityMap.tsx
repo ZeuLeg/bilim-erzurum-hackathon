@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Report, WorkOrder } from "@/types";
+import type { Report, WorkOrder, ConflictAlert } from "@/types";
 
 interface CityMapProps {
   reports: Report[];
   workOrders: WorkOrder[];
+  conflicts?: ConflictAlert[];
   onLocationSelect?: (location: {
     locationLat: number;
     locationLng: number;
@@ -19,11 +20,13 @@ const cityCenter = { lat: 39.9055, lng: 41.2714 };
 export default function CityMap({
   reports,
   workOrders,
+  conflicts,
   onLocationSelect,
 }: CityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
+  const conflictLinesRef = useRef<L.Polyline[]>([]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -72,72 +75,121 @@ export default function CityMap({
 
     // Add report markers (red)
     reports.forEach((report) => {
-      if (mapRef.current) {
-        const marker = L.circleMarker(
-          [report.locationLat, report.locationLng],
-          {
-            radius: 10,
-            fillColor: "#ef4444",
-            color: "#ef4444",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.7,
-          },
-        ).addTo(mapRef.current);
+      if (!mapRef.current) return;
 
-        marker.bindPopup(
-          `<div style="font-size: 14px; line-height: 1.5;">
-            <strong>${report.title}</strong><br>
-            Durum: ${report.status.replace("_", " ")}<br>
-            ${new Date(report.createdAt).toLocaleString("tr-TR")}
-          </div>`,
-        );
+      const marker = L.circleMarker([report.locationLat, report.locationLng], {
+        radius: 10,
+        fillColor: "#ef4444",
+        color: "#ef4444",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.7,
+      }).addTo(mapRef.current);
 
-        marker.on("click", () => {
-          onLocationSelect?.({
-            locationLat: report.locationLat,
-            locationLng: report.locationLng,
-          });
+      marker.bindPopup(
+        `<div style="font-size: 14px; line-height: 1.5;"><strong>${report.title}</strong><br>Durum: ${report.status.replace("_", " ")}<br>${new Date(
+          report.createdAt,
+        ).toLocaleString("tr-TR")}</div>`,
+      );
+
+      marker.on("click", () => {
+        onLocationSelect?.({
+          locationLat: report.locationLat,
+          locationLng: report.locationLng,
         });
+      });
 
-        markersRef.current.push(marker);
-      }
+      markersRef.current.push(marker);
     });
 
-    // Add work order markers (blue)
+    // Compute conflict ids set and add work order markers (blue or orange if conflicting)
+    const conflictIds = new Set<number>();
+    if (conflicts && Array.isArray(conflicts)) {
+      conflicts.forEach((c) => {
+        if (c?.workOrderA?.id) conflictIds.add(c.workOrderA.id);
+        if (c?.workOrderB?.id) conflictIds.add(c.workOrderB.id);
+      });
+    }
+
     workOrders.forEach((workOrder) => {
-      if (mapRef.current) {
-        const marker = L.circleMarker(
-          [workOrder.locationLat, workOrder.locationLng],
-          {
-            radius: 10,
-            fillColor: "#3b82f6",
-            color: "#3b82f6",
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.7,
-          },
-        ).addTo(mapRef.current);
+      if (!mapRef.current) return;
 
-        marker.bindPopup(
-          `<div style="font-size: 14px; line-height: 1.5;">
-            <strong>${workOrder.departmentName}</strong><br>
-            Durum: ${workOrder.status.replace("_", " ")}<br>
-            ${new Date(workOrder.plannedStartDate).toLocaleDateString("tr-TR")} - ${new Date(workOrder.plannedEndDate).toLocaleDateString("tr-TR")}
-          </div>`,
-        );
+      const isConflict = conflictIds.has(workOrder.id);
+      const marker = L.circleMarker(
+        [workOrder.locationLat, workOrder.locationLng],
+        {
+          radius: 10,
+          fillColor: isConflict ? "#f97316" : "#3b82f6",
+          color: isConflict ? "#ea580c" : "#3b82f6",
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.7,
+        },
+      ).addTo(mapRef.current);
 
-        marker.on("click", () => {
-          onLocationSelect?.({
-            locationLat: workOrder.locationLat,
-            locationLng: workOrder.locationLng,
-          });
+      marker.bindPopup(
+        `<div style="font-size: 14px; line-height: 1.5;"><strong>${workOrder.departmentName}</strong><br>Durum: ${workOrder.status.replace(
+          "_",
+          " ",
+        )}<br>${new Date(workOrder.plannedStartDate).toLocaleDateString("tr-TR")} - ${new Date(
+          workOrder.plannedEndDate,
+        ).toLocaleDateString("tr-TR")}</div>`,
+      );
+
+      marker.on("click", () => {
+        onLocationSelect?.({
+          locationLat: workOrder.locationLat,
+          locationLng: workOrder.locationLng,
         });
+      });
 
-        markersRef.current.push(marker);
-      }
+      markersRef.current.push(marker);
     });
-  }, [reports, workOrders, onLocationSelect]);
+  }, [reports, workOrders, onLocationSelect, conflicts]);
+
+  // Manage conflict polylines separately
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Remove existing conflict lines
+    conflictLinesRef.current.forEach((line) => {
+      mapRef.current?.removeLayer(line);
+    });
+    conflictLinesRef.current = [];
+
+    if (!conflicts || !Array.isArray(conflicts) || conflicts.length === 0)
+      return;
+
+    conflicts.forEach((c) => {
+      const a = c.workOrderA;
+      const b = c.workOrderB;
+      if (!a || !b) return;
+
+      const latlngs: L.LatLngExpression[] = [
+        [a.locationLat, a.locationLng],
+        [b.locationLat, b.locationLng],
+      ];
+
+      let options: L.PolylineOptions = {
+        dashArray: "4,4",
+        weight: 2,
+        color: "#eab308",
+      };
+
+      if (c.severity === "high") {
+        options = { dashArray: "8,6", weight: 3, color: "#ef4444" };
+      } else if (c.severity === "medium") {
+        options = { dashArray: "6,4", weight: 2, color: "#f97316" };
+      }
+
+      const line = L.polyline(latlngs, options).addTo(mapRef.current!);
+
+      const popupHtml = `<div style="font-size:14px; line-height:1.4;"><strong>${a.departmentName} ↔ ${b.departmentName}</strong><br>${c.reason}<br>${c.distanceMeters}m mesafe, ${c.overlapDays} gün örtüşme</div>`;
+      line.bindPopup(popupHtml);
+
+      conflictLinesRef.current.push(line);
+    });
+  }, [conflicts]);
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
@@ -151,6 +203,20 @@ export default function CityMap({
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-blue-500" />
             <span>İş emri</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: "#f97316" }}
+            />
+            <span>Çakışan iş emri</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block w-6"
+              style={{ borderTop: "3px dashed #f97316", height: 0 }}
+            />
+            <span>Kırmızı/turuncu çizgi: Aktif çakışma</span>
           </div>
         </div>
       </div>

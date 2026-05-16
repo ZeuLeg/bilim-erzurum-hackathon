@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MapPin, ShieldCheck, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import type { Report, WorkOrder } from "@/types";
+import type { Report, WorkOrder, ConflictAlert } from "@/types";
 import ReportForm from "@/components/shared/ReportForm";
 
 const CityMap = dynamic(() => import("@/components/shared/CityMap"), {
@@ -22,6 +22,7 @@ const initialWorkOrders: WorkOrder[] = [];
 export default function CitizenPage() {
   const [reports, setReports] = useState<Report[]>(initialReports);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialWorkOrders);
+  const [conflicts, setConflicts] = useState<ConflictAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<
@@ -61,6 +62,26 @@ export default function CitizenPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/conflicts");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!mounted) return;
+        setConflicts(Array.isArray(data?.conflicts) ? data.conflicts : []);
+      } catch (err) {
+        console.error("Failed to fetch conflicts", err);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -120,6 +141,7 @@ export default function CitizenPage() {
             <CityMap
               reports={reports}
               workOrders={workOrders}
+              conflicts={conflicts}
               onLocationSelect={setSelectedLocation}
             />
           </div>
