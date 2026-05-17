@@ -50,6 +50,12 @@ export default function ReportPage() {
     fetchData();
   }, [fetchData]);
 
+  // After a report is submitted: refresh data and clear the temporary pin.
+  const handleReportSubmitted = useCallback(async () => {
+    await fetchData();
+    setSelectedLocation(undefined);
+  }, [fetchData]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -120,6 +126,7 @@ export default function ReportPage() {
               reports={reports}
               workOrders={workOrders}
               conflicts={conflicts}
+              selectedLocation={selectedLocation}
               onLocationSelect={setSelectedLocation}
             />
           </div>
@@ -139,7 +146,7 @@ export default function ReportPage() {
           <ReportForm
             selectedLocation={selectedLocation}
             onLocationChange={setSelectedLocation}
-            onSubmit={fetchData}
+            onSubmit={handleReportSubmitted}
           />
         </aside>
       </div>

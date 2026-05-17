@@ -9,6 +9,7 @@ interface CityMapProps {
   reports: Report[];
   workOrders: WorkOrder[];
   conflicts?: ConflictAlert[];
+  selectedLocation?: { locationLat: number; locationLng: number };
   onLocationSelect?: (location: {
     locationLat: number;
     locationLng: number;
@@ -17,16 +18,30 @@ interface CityMapProps {
 
 const cityCenter = { lat: 39.9055, lng: 41.2714 };
 
+/** Teardrop pin marking the location the citizen picked for their report. */
+const selectedPinIcon = L.divIcon({
+  className: "",
+  html: `<svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 0C7.2 0 0 7.2 0 16c0 11.2 16 24 16 24s16-12.8 16-24C32 7.2 24.8 0 16 0z" fill="#10b981" stroke="#ffffff" stroke-width="2.5"/>
+    <circle cx="16" cy="16" r="6" fill="#ffffff"/>
+  </svg>`,
+  iconSize: [32, 40],
+  iconAnchor: [16, 40],
+  popupAnchor: [0, -36],
+});
+
 export default function CityMap({
   reports,
   workOrders,
   conflicts,
+  selectedLocation,
   onLocationSelect,
 }: CityMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.CircleMarker[]>([]);
   const conflictLinesRef = useRef<L.Polyline[]>([]);
+  const selectedPinRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -191,6 +206,43 @@ export default function CityMap({
     });
   }, [conflicts]);
 
+  // Show a draggable temporary pin at the location the citizen picked
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (!selectedLocation) {
+      if (selectedPinRef.current) {
+        mapRef.current.removeLayer(selectedPinRef.current);
+        selectedPinRef.current = null;
+      }
+      return;
+    }
+
+    const { locationLat, locationLng } = selectedLocation;
+
+    if (selectedPinRef.current) {
+      selectedPinRef.current.setLatLng([locationLat, locationLng]);
+      return;
+    }
+
+    const marker = L.marker([locationLat, locationLng], {
+      icon: selectedPinIcon,
+      draggable: true,
+      zIndexOffset: 1000,
+    }).addTo(mapRef.current);
+
+    marker.bindPopup(
+      '<div style="font-size:14px;line-height:1.4;"><strong>Seçilen rapor konumu</strong><br>Pini sürükleyerek konumu ayarlayabilirsiniz.</div>',
+    );
+
+    marker.on("dragend", () => {
+      const { lat, lng } = marker.getLatLng();
+      onLocationSelect?.({ locationLat: lat, locationLng: lng });
+    });
+
+    selectedPinRef.current = marker;
+  }, [selectedLocation, onLocationSelect]);
+
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
       <div className="absolute right-4 top-4 z-10 max-w-[240px] rounded-2xl border border-slate-200 bg-white/90 p-3 text-sm shadow-sm backdrop-blur-sm sm:max-w-[280px]">
@@ -217,6 +269,13 @@ export default function CityMap({
               style={{ borderTop: "3px dashed #f97316", height: 0 }}
             />
             <span>Kırmızı/turuncu çizgi: Aktif çakışma</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 rounded-full"
+              style={{ backgroundColor: "#10b981" }}
+            />
+            <span>Seçilen rapor konumu</span>
           </div>
         </div>
       </div>

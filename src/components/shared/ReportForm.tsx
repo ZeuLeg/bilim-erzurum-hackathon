@@ -26,6 +26,7 @@ export default function ReportForm({
 }: ReportFormProps) {
   const [formData, setFormData] = useState<NewReport>(initialFormState);
   const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +39,32 @@ export default function ReportForm({
       }));
     }
   }, [selectedLocation]);
+
+  // Update both the form and the map pin so the two stay in sync.
+  function updateLocation(locationLat: number, locationLng: number) {
+    setFormData((current) => ({ ...current, locationLat, locationLng }));
+    onLocationChange({ locationLat, locationLng });
+  }
+
+  function handleUseMyLocation() {
+    if (!navigator.geolocation) {
+      setError("Tarayıcınız konum servisini desteklemiyor.");
+      return;
+    }
+    setLocating(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        updateLocation(position.coords.latitude, position.coords.longitude);
+        setLocating(false);
+      },
+      () => {
+        setError("Konum alınamadı. Lütfen izin verin veya haritadan seçin.");
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,10 +154,7 @@ export default function ReportForm({
             step="any"
             value={formData.locationLat}
             onChange={(event) =>
-              setFormData({
-                ...formData,
-                locationLat: Number(event.target.value),
-              })
+              updateLocation(Number(event.target.value), formData.locationLng)
             }
             className="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             required
@@ -149,10 +173,7 @@ export default function ReportForm({
             step="any"
             value={formData.locationLng}
             onChange={(event) =>
-              setFormData({
-                ...formData,
-                locationLng: Number(event.target.value),
-              })
+              updateLocation(formData.locationLat, Number(event.target.value))
             }
             className="mt-2 block w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             required
@@ -160,9 +181,18 @@ export default function ReportForm({
         </div>
       </div>
 
+      <button
+        type="button"
+        onClick={handleUseMyLocation}
+        disabled={locating}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {locating ? "Konum alınıyor…" : "📍 Konumumu Kullan"}
+      </button>
+
       <p className="text-sm text-slate-500">
-        Haritada bir noktaya tıklayarak koordinatları otomatik olarak
-        doldurabilirsiniz.
+        Haritaya tıklayarak, pini sürükleyerek ya da konumunuzu kullanarak
+        koordinatları belirleyebilirsiniz.
       </p>
 
       <div className="flex flex-col gap-3">
