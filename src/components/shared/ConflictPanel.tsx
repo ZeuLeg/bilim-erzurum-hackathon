@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { parseConflictReportFromText, type ConflictAlertDTO } from '@/lib/ai/conflictParser';
 
 type MessagePart = {
@@ -75,6 +76,11 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
     error: null,
   });
 
+  const assistantMessages = useMemo(
+    () => messages.filter((message) => message.role === 'assistant'),
+    [messages],
+  );
+
   const handleReschedule = async (
     conflict: ConflictAlertDTO,
     key: string,
@@ -132,17 +138,23 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
     );
   }
 
-  if (messages.length === 0) {
+  if (assistantMessages.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-        Henüz analiz başlatılmadı. "AI Çakışma Analizi Çalıştır" butonuna basın.
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+        <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+          <Sparkles className="h-6 w-6" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-900">AI Çakışma Analizi Hazır</h3>
+        <p className="mt-2 text-sm text-slate-500">
+          Yukarıdaki butona tıklayarak Gemini 2.5 Flash'ın iş emirlerinizi analiz etmesini sağlayın.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {messages.map((message, index) => {
+      {assistantMessages.map((message, index) => {
         const text = getMessageText(message);
         const content = formatMessageContent(text);
         const parsedReport =
