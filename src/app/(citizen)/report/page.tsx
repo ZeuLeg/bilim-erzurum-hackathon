@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -82,7 +82,7 @@ export default function ReportPage() {
             </Link>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                CitySync AI
+                KentSenkron AI
               </p>
               <h1 className="text-2xl font-semibold text-slate-900">
                 Vatandaş Portalı

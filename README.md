@@ -1,4 +1,4 @@
-# 🏙️ CitySync AI
+# 🏙️ KentSenkron AI
 
 > **Erzurum'da altyapı çalışmaları artık çakışmıyor.**
 
@@ -8,7 +8,7 @@
 [![Vitest](https://img.shields.io/badge/Vitest-28_test-6e9f18?logo=vitest&logoColor=white)](https://vitest.dev)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-**CitySync AI**, belediye müdürlüklerinin iş emirlerini yapay zeka ile koordine eden, aynı caddeyi iki kez kazmayı önleyen bir karar destek platformudur. Yeni dökülen asfaltın bir hafta sonra su borusu için kazılmasını — milyonlarca liralık israfı ve tonlarca karbon emisyonunu — planlama aşamasında engeller.
+**KentSenkron AI**, belediye müdürlüklerinin iş emirlerini yapay zeka ile koordine eden, aynı caddeyi iki kez kazmayı önleyen bir karar destek platformudur. Yeni dökülen asfaltın bir hafta sonra su borusu için kazılmasını — milyonlarca liralık israfı ve tonlarca karbon emisyonunu — planlama aşamasında engeller.
 
 📍 _2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim Erzurum_  
 👥 _Team Zetora_

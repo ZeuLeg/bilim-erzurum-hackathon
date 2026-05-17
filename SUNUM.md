@@ -1,4 +1,4 @@
-# 🎤 CitySync AI — Jüri Sunumu
+﻿# 🎤 KentSenkron AI — Jüri Sunumu
 
 > Toplam süre hedefi: **5 dakika sunum + 3 dakika demo + soru-cevap**
 > Her slayt için altta konuşma metni ("Konuşma:") verilmiştir — ezberlemeyin, anlatın.
@@ -7,8 +7,8 @@
 
 ## Slayt 1 — Açılış (15 sn)
 
-**CitySync AI**
-*Erzurum'da altyapı çalışmaları artık çakışmıyor.*
+**KentSenkron AI**
+*Önce koordinasyon, sonra kazı.*
 
 Team Zetora · 2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim Erzurum
 
@@ -32,7 +32,7 @@ Team Zetora · 2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim
 
 ## Slayt 3 — Çözüm (45 sn)
 
-**CitySync AI — 3 katmanlı koordinasyon**
+**KentSenkron AI — 3 katmanlı koordinasyon**
 
 1. 🔍 **Deterministik Motor** — 300 m yakınlık + tarih örtüşmesi → kesin çakışma tespiti
 2. 🤖 **Gemini AI Ajanı** — çakışmayı yorumlar, vatandaş ihbarlarıyla birleştirir, Türkçe öneri üretir
@@ -89,7 +89,7 @@ Team Zetora · 2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim
 - AI başarısız olsa bile çalışan yedek motor
 - Bugün kurulup yarın belediyede kullanılabilir
 
-**CitySync AI — şehri iki kez kazma.**
+**KentSenkron AI — şehri iki kez kazma.**
 
 > **Konuşma:** "Modern bir yığınla, üretime hazır şekilde geliştirdik. Yapay zeka çökse bile sistem çalışmaya devam ediyor. Bu prototip bugün kurulabilir. Teşekkürler — sorularınızı bekliyoruz."
 
@@ -98,7 +98,7 @@ Team Zetora · 2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim
 ## 🎯 Olası Jüri Soruları & Cevaplar
 
 **S: Veriyi belediyeden nasıl alacaksınız?**
-C: Her müdürlüğün zaten dijital iş emri kaydı var. CitySync bu kayıtları tek havuzda toplayan bir entegrasyon katmanı. API hazır; mevcut sistemlere bağlanır.
+C: Her müdürlüğün zaten dijital iş emri kaydı var. KentSenkron bu kayıtları tek havuzda toplayan bir entegrasyon katmanı. API hazır; mevcut sistemlere bağlanır.
 
 **S: 1.6 milyon TL rakamı nereden geliyor?**
 C: Muhafazakâr bir planlama tahmini — yol uzunluğu, asfalt m² maliyeti ve yeniden serim üzerinden. Faturalanmış tutar değil, "tahmini" olarak sunuyoruz.

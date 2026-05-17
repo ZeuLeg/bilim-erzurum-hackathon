@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -29,7 +29,7 @@ export default function LandingPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
               <Sparkles className="h-4 w-4" />
             </div>
-            <span className="text-lg font-semibold text-slate-900">CitySync AI</span>
+            <span className="text-lg font-semibold text-slate-900">KentSenkron AI</span>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -56,12 +56,11 @@ export default function LandingPage() {
             Gemini 2.5 Flash ile güçlendirildi
           </span>
           <h1 className="mt-6 text-5xl font-bold tracking-tight text-slate-900 lg:text-6xl">
-            Erzurum&rsquo;da altyapı<br />
-            <span className="text-blue-600">çalışmaları artık</span><br />
-            çakışmıyor.
+            Önce koordinasyon,<br />
+            <span className="text-blue-600">sonra kazı.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-lg text-slate-500">
-            CitySync AI, aynı caddeyi iki kez kazmayı önler. Yapay zeka destekli
+            KentSenkron AI, aynı caddeyi iki kez kazmayı önler. Yapay zeka destekli
             belediye koordinasyonu ile milyonlarca liralık kaynak israfını ve
             binlerce kilogram karbon emisyonunu engelleyin.
           </p>

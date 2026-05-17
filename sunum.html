@@ -1,0 +1,948 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KentSenkron AI — Team Zetora — Bilim Erzurum 2026</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  :root {
+    --navy:   #0f172a;
+    --slate:  #1e293b;
+    --sky:    #0ea5e9;
+    --sky-d:  #0369a1;
+    --sky-l:  #e0f2fe;
+    --em:     #10b981;
+    --em-l:   #d1fae5;
+    --amb:    #f59e0b;
+    --amb-l:  #fef3c7;
+    --rose:   #f43f5e;
+    --rose-l: #ffe4e6;
+    --g50:    #f8fafc;
+    --g100:   #f1f5f9;
+    --g200:   #e2e8f0;
+    --g400:   #94a3b8;
+    --g500:   #64748b;
+    --g700:   #334155;
+    --g900:   #0f172a;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: #cbd5e1;
+    padding: 24px;
+    line-height: 1.4;
+  }
+
+  /* ── Slide container ── */
+  .slide {
+    width: 297mm;
+    height: 210mm;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto 28px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+
+  @media print {
+    body { background: none; padding: 0; margin: 0; }
+    .slide { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    @page { size: A4 landscape; margin: 0; }
+  }
+
+  /* ── Slide header bar ── */
+  .slide-hdr {
+    background: var(--navy);
+    color: #fff;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5mm 10mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .slide-hdr .logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .slide-hdr .logo-badge {
+    width: 22px; height: 22px;
+    background: var(--sky);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9pt; font-weight: 800; color: #fff; letter-spacing: 0;
+  }
+  .slide-hdr .slide-num {
+    color: var(--g400);
+    font-size: 8pt;
+  }
+
+  /* ── Body area ── */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .slide-pad { padding: 8mm 10mm; }
+
+  /* ── Typography ── */
+  .slide-title {
+    font-size: 26pt;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.15;
+  }
+  .slide-title.white { color: #fff; }
+  .slide-subtitle {
+    font-size: 13pt;
+    color: var(--g500);
+    margin-top: 3mm;
+    line-height: 1.4;
+  }
+  .slide-subtitle.sky { color: var(--sky); }
+  .section-label {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--sky);
+    margin-bottom: 3mm;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 8.5pt;
+    font-weight: 600;
+  }
+  .badge-sky   { background: var(--sky-l);  color: var(--sky-d); }
+  .badge-em    { background: var(--em-l);   color: #065f46; }
+  .badge-amb   { background: var(--amb-l);  color: #92400e; }
+  .badge-rose  { background: var(--rose-l); color: #9f1239; }
+  .badge-navy  { background: var(--navy);   color: #fff; }
+
+  /* ── Stat blocks ── */
+  .stat-block {
+    background: var(--g50);
+    border: 1px solid var(--g200);
+    border-radius: 8px;
+    padding: 5mm 6mm;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 24pt;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .stat-num.sky  { color: var(--sky); }
+  .stat-num.em   { color: var(--em); }
+  .stat-num.rose { color: var(--rose); }
+  .stat-num.amb  { color: var(--amb); }
+  .stat-label {
+    font-size: 8.5pt;
+    color: var(--g500);
+    margin-top: 2mm;
+    font-weight: 500;
+  }
+
+  /* ── Feature card ── */
+  .feat-card {
+    background: var(--g50);
+    border: 1px solid var(--g200);
+    border-radius: 8px;
+    padding: 4mm 5mm;
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
+  }
+  .feat-icon { font-size: 16pt; line-height: 1; }
+  .feat-title { font-size: 10pt; font-weight: 700; color: var(--navy); }
+  .feat-desc  { font-size: 8.5pt; color: var(--g500); line-height: 1.4; }
+
+  /* ── Team card ── */
+  .team-card {
+    background: var(--g50);
+    border: 1px solid var(--g200);
+    border-radius: 8px;
+    padding: 5mm 6mm;
+    flex: 1;
+  }
+  .team-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--sky);
+    color: #fff;
+    font-size: 12pt;
+    font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 3mm;
+  }
+  .team-name  { font-size: 11pt; font-weight: 700; color: var(--navy); }
+  .team-role  { font-size: 8.5pt; color: var(--g500); margin-top: 1.5mm; line-height: 1.5; }
+
+  /* ── Flow step ── */
+  .flow-step {
+    border-radius: 8px;
+    padding: 5mm 6mm;
+    flex: 1;
+  }
+  .flow-step.sky   { background: var(--sky-l);  border: 1.5px solid #bae6fd; }
+  .flow-step.em    { background: var(--em-l);   border: 1.5px solid #6ee7b7; }
+  .flow-step.navy  { background: var(--navy);   border: 1.5px solid var(--navy); color: #fff; }
+  .flow-icon   { font-size: 18pt; margin-bottom: 2mm; }
+  .flow-title  { font-size: 11pt; font-weight: 800; color: var(--navy); margin-bottom: 1.5mm; }
+  .flow-step.navy .flow-title { color: #fff; }
+  .flow-desc   { font-size: 8.5pt; color: var(--g500); line-height: 1.5; }
+  .flow-step.navy .flow-desc { color: #94a3b8; }
+  .flow-arrow  {
+    align-self: center; font-size: 16pt; color: var(--g400);
+    padding: 0 2mm; flex-shrink: 0;
+  }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--g200); margin: 4mm 0; }
+  hr.accent { border-top: 2px solid var(--sky); width: 36px; margin: 3mm 0; }
+
+  /* ── Grid helpers ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .flex-row { display: flex; gap: 4mm; }
+  .flex-col { display: flex; flex-direction: column; gap: 4mm; }
+
+  /* ── Highlight box ── */
+  .highlight-box {
+    border-radius: 8px;
+    padding: 4mm 5mm;
+  }
+  .highlight-box.sky   { background: var(--sky-l);  border-left: 3px solid var(--sky); }
+  .highlight-box.em    { background: var(--em-l);   border-left: 3px solid var(--em); }
+  .highlight-box.amb   { background: var(--amb-l);  border-left: 3px solid var(--amb); }
+  .highlight-box.rose  { background: var(--rose-l); border-left: 3px solid var(--rose); }
+  .highlight-box.navy  { background: var(--navy);   border-left: 3px solid var(--sky); }
+  .hl-title { font-size: 9pt; font-weight: 700; color: var(--navy); margin-bottom: 1mm; }
+  .highlight-box.navy .hl-title { color: #e2e8f0; }
+  .hl-body  { font-size: 8.5pt; color: var(--g500); line-height: 1.5; }
+  .highlight-box.navy .hl-body { color: #94a3b8; }
+
+  /* ── Dark cover slide ── */
+  .slide-cover { background: var(--navy); }
+  .cover-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(14,165,233,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14,165,233,0.06) 1px, transparent 1px);
+    background-size: 18mm 18mm;
+  }
+  .cover-dot {
+    position: absolute;
+    right: 18mm; top: 50%; transform: translateY(-50%);
+    width: 80mm; height: 80mm;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(14,165,233,0.18) 0%, transparent 70%);
+  }
+  .cover-rings {
+    position: absolute;
+    right: 26mm; top: 50%; transform: translateY(-50%);
+    width: 64mm; height: 64mm;
+  }
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(14,165,233,0.2);
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+  }
+
+  /* ── Stack table ── */
+  .stack-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  .stack-table th {
+    text-align: left;
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--g400);
+    padding: 2mm 3mm;
+    border-bottom: 1px solid var(--g200);
+  }
+  .stack-table td {
+    padding: 2mm 3mm;
+    color: var(--g700);
+    border-bottom: 1px solid var(--g100);
+    vertical-align: top;
+  }
+  .stack-table td:first-child { font-weight: 600; color: var(--navy); }
+
+  /* ── Bottom footer ── */
+  .slide-footer {
+    background: var(--g50);
+    border-top: 1px solid var(--g200);
+    padding: 2.5mm 10mm;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    color: var(--g400);
+  }
+
+  /* ── Timeline (problem visual) ── */
+  .timeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    position: relative;
+  }
+  .tl-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .tl-circle {
+    width: 14mm; height: 14mm;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14pt;
+    margin-bottom: 3mm;
+    flex-shrink: 0;
+  }
+  .tl-circle.sky  { background: var(--sky-l); }
+  .tl-circle.rose { background: var(--rose-l); }
+  .tl-line {
+    position: absolute;
+    top: 7mm;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    z-index: 0;
+  }
+  .tl-line.solid { background: var(--g300, #cbd5e1); }
+  .tl-line.dashed {
+    background: repeating-linear-gradient(
+      90deg, var(--rose) 0, var(--rose) 6px, transparent 6px, transparent 12px
+    );
+  }
+  .tl-label { font-size: 9pt; font-weight: 700; color: var(--navy); }
+  .tl-sub   { font-size: 8pt; color: var(--g500); margin-top: 1mm; line-height: 1.4; }
+  .tl-week  {
+    display: inline-block;
+    background: var(--g100);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--g500);
+    margin-bottom: 1.5mm;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     SLIDE 1 — KAPAK
+════════════════════════════════════════ -->
+<div class="slide slide-cover">
+  <div class="cover-grid-bg"></div>
+  <div class="cover-dot"></div>
+  <div class="cover-rings">
+    <div class="ring" style="width:100%;height:100%;opacity:0.4;"></div>
+    <div class="ring" style="width:75%;height:75%;opacity:0.5;"></div>
+    <div class="ring" style="width:50%;height:50%;opacity:0.6;"></div>
+    <div class="ring" style="width:25%;height:25%;opacity:0.8;background:rgba(14,165,233,0.12);"></div>
+  </div>
+
+  <div class="slide-body" style="padding: 12mm 14mm; position: relative; z-index: 2;">
+    <div style="max-width: 160mm; display:flex; flex-direction:column; justify-content:center; height:100%;">
+
+      <!-- Logo -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 8mm;">
+        <div style="width:44px;height:44px;background:var(--sky);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16pt;font-weight:900;color:#fff;">KS</div>
+        <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:0.16em;color:#94a3b8;">Team Zetora</div>
+      </div>
+
+      <!-- Main title -->
+      <div style="font-size:40pt;font-weight:900;line-height:1.05;letter-spacing:-0.02em;">
+        <span style="color:#fff;">Kent</span><span style="color:var(--sky);">Senkron</span><span style="color:#fff;"> AI</span>
+      </div>
+
+      <hr style="border:none;border-top:2px solid var(--sky);width:48px;margin:6mm 0;">
+
+      <div style="font-size:15pt;color:#cbd5e1;line-height:1.5;font-weight:400;max-width:140mm;">
+        <span style="color:#fff;font-weight:700;">Önce koordinasyon,</span><br>
+        sonra kazı.
+      </div>
+
+      <div style="margin-top: 10mm; display:flex; flex-direction:column; gap:3mm;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--sky);flex-shrink:0;"></div>
+          <span style="font-size:9pt;color:#94a3b8;font-weight:500;">2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim Erzurum</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:#475569;flex-shrink:0;"></div>
+          <span style="font-size:9pt;color:#94a3b8;font-weight:500;">Cengizhan Göçer · Hüseyin Taha Adanur · Ozan Osman Akan</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 2 — PROBLEM
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo">
+      <div class="logo-badge">KS</div>
+      <span>KentSenkron AI</span>
+    </div>
+    <span class="slide-num">02 / Problem</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:5mm;">
+    <div>
+      <div class="section-label">Neden Bu Proje?</div>
+      <div class="slide-title">Aynı Caddeyi İki Kez Kazıyoruz</div>
+      <div class="slide-subtitle">Belediye müdürlükleri birbirinden habersiz çalışıyor — ve bunun bedeli milyonlarca lira.</div>
+    </div>
+
+    <!-- Timeline -->
+    <div style="position:relative; padding: 4mm 0 2mm;">
+      <div style="position:absolute; top:10mm; left:12.5%; right:12.5%; height:2px; background:var(--g200); z-index:0;"></div>
+      <div class="grid-3" style="position:relative; z-index:1;">
+        <div class="tl-step">
+          <div class="tl-circle sky" style="margin-bottom:2mm;">🏗️</div>
+          <div style="margin-bottom:1mm;"><span class="tl-week">Haziran — 1. Hafta</span></div>
+          <div class="tl-label">Asfalt Yenilenir</div>
+          <div class="tl-sub">Cumhuriyet Caddesi'ne<br>taze asfalt dökülür.</div>
+        </div>
+        <div class="tl-step">
+          <div style="position:absolute;top:7mm;left:-50%;right:50%;height:2px;background:repeating-linear-gradient(90deg,var(--rose) 0,var(--rose) 5px,transparent 5px,transparent 10px);z-index:0;"></div>
+          <div class="tl-circle rose" style="margin-bottom:2mm;">💧</div>
+          <div style="margin-bottom:1mm;"><span class="tl-week">Haziran — 2. Hafta</span></div>
+          <div class="tl-label">Su Borusu Kazılır</div>
+          <div class="tl-sub">Su Müdürlüğü aynı<br>yeri yeniden açar.</div>
+        </div>
+        <div class="tl-step">
+          <div style="position:absolute;top:7mm;left:-50%;right:50%;height:2px;background:repeating-linear-gradient(90deg,var(--rose) 0,var(--rose) 5px,transparent 5px,transparent 10px);z-index:0;"></div>
+          <div class="tl-circle rose" style="margin-bottom:2mm;">❌</div>
+          <div style="margin-bottom:1mm;"><span class="tl-week">Sonuç</span></div>
+          <div class="tl-label">Yeni Asfalt Mahvoldu</div>
+          <div class="tl-sub">Yeniden döküm, vatandaş<br>mağduriyeti, bütçe kaybı.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Impact stats -->
+    <div class="grid-3" style="gap:4mm;">
+      <div class="stat-block" style="border-color:#fecdd3; background:var(--rose-l);">
+        <div class="stat-num rose">~₺1.6M</div>
+        <div class="stat-label">Çakışma başına israf</div>
+      </div>
+      <div class="stat-block" style="border-color:#bbf7d0; background:var(--em-l);">
+        <div class="stat-num em">~25 ton</div>
+        <div class="stat-label">Ek CO₂ emisyonu</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num sky">Türkiye geneli</div>
+        <div class="stat-label">Her şehrin kronik sorunu</div>
+      </div>
+    </div>
+
+    <div class="highlight-box rose">
+      <div class="hl-title">Kök Neden</div>
+      <div class="hl-body">Her müdürlük kendi takvimini bağımsız hazırlıyor. Koordinasyon için ortak dijital platform yok. Çakışmalar proje tamamlandıktan sonra fark ediliyor.</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 3 — ÇÖZÜM
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo"><div class="logo-badge">KS</div><span>KentSenkron AI</span></div>
+    <span class="slide-num">03 / Çözüm</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:5mm;">
+    <div>
+      <div class="section-label">Nasıl Çalışıyor?</div>
+      <div class="slide-title">3 Katmanlı Koordinasyon Mimarisi</div>
+    </div>
+
+    <!-- Flow -->
+    <div style="display:flex; align-items:stretch; gap:3mm;">
+      <div class="flow-step sky">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-title">Deterministik Motor</div>
+        <div class="flow-desc">Tüm iş emri çiftlerini matematiksel olarak tarar. <strong>300 m yakınlık</strong> + <strong>en az 1 gün tarih örtüşmesi</strong> = çakışma. Yapay zekaya bağımlı değil; her zaman ve kesin çalışır.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:#f0fdf4; border:1.5px solid #6ee7b7;">
+        <div class="flow-icon">🤖</div>
+        <div class="flow-title" style="color:var(--navy);">Gemini 2.5 Flash</div>
+        <div class="flow-desc">Motorun kesin bulgularını alır; vatandaş ihbarlarıyla ilişkilendirir. <strong>Türkçe gerekçe</strong> ve <strong>uygulanabilir öneri</strong> üretir. Sayıları kendisi hesaplamaz — motoru kullanır.</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step navy">
+        <div class="flow-icon">⚡</div>
+        <div class="flow-title">Tek Tık Eylem</div>
+        <div class="flow-desc" style="color:#94a3b8;">Admin, AI'ın önerdiği yeni tarihi onaylar. <code style="background:#1e3a5f;padding:1px 4px;border-radius:3px;font-size:7.5pt;">PATCH /api/work-orders/:id</code> ile çakışma anında çözülür.</div>
+      </div>
+    </div>
+
+    <!-- Why both -->
+    <div class="grid-2" style="gap:4mm;">
+      <div class="highlight-box sky">
+        <div class="hl-title">⚙️ Deterministik Motor — Ne Zaman Öne Çıkar?</div>
+        <div class="hl-body">İnternet veya AI kesintisinde bile çalışmaya devam eder. Mesafe, gün sayısı ve tahmini bütçe kaybı <em>kesin</em> sayılardır — tahmin değil. Demo güvenilirliği garanti.</div>
+      </div>
+      <div class="highlight-box em">
+        <div class="hl-title">🤖 Yapay Zeka — Ne Zaman Öne Çıkar?</div>
+        <div class="hl-body">Sayıları yorumlar, öncelik sıralar, insan diline çevirir. Vatandaş şikayetlerini iş emirleriyle ilişkilendirir. Sıradaki adımı Türkçe olarak önerir.</div>
+      </div>
+    </div>
+
+    <div class="highlight-box navy">
+      <div class="hl-title">🛡️ Kritik Tasarım Kararı</div>
+      <div class="hl-body">"AI mesafeyi kendisi hesapla" demiyoruz — <strong style="color:#e2e8f0;">halüsinasyon riski sıfır.</strong> Motor veriyi hesaplar; AI sadece yorumlar ve önerir. Bu yüzden hem güvenilir hem akıllı.</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 4 — ÖZELLİKLER
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo"><div class="logo-badge">KS</div><span>KentSenkron AI</span></div>
+    <span class="slide-num">04 / Özellikler</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:4mm;">
+    <div>
+      <div class="section-label">Ne İnşa Ettik?</div>
+      <div class="slide-title" style="font-size:22pt;">Uçtan Uca Koordinasyon Platformu</div>
+    </div>
+
+    <div class="grid-3" style="gap:3.5mm;">
+      <div class="feat-card">
+        <div class="feat-icon">🗺️</div>
+        <div class="feat-title">Vatandaş Portalı</div>
+        <div class="feat-desc">Harita üzerinden sorun bildirme. GPS konum desteği. Mevcut iş emirleri ve ihbarlar haritada görünür.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔥</div>
+        <div class="feat-title">İhbar Isı Haritası</div>
+        <div class="feat-desc">Vatandaş şikayetlerinin yoğunlaştığı bölgeler açılıp kapanan ısı katmanıyla görselleştirilir.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🤖</div>
+        <div class="feat-title">AI Çakışma Analizi</div>
+        <div class="feat-desc">Tüm iş emirleri tek tıkla taranır; Gemini Türkçe gerekçeli çakışma raporu üretir, streaming olarak akar.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📅</div>
+        <div class="feat-title">30 Gün Risk Analizi</div>
+        <div class="feat-desc">Yakın dönemdeki çakışmalar aciliyet sıralamasıyla değerlendirilir, risk seviyesi ve maliyet tahmin edilir.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💰</div>
+        <div class="feat-title">Canlı Etki Paneli</div>
+        <div class="feat-desc">Önlenen bütçe kaybı (₺), CO₂ tasarrufu (kg) ve kurtarılan yol (m) gerçek zamanlı gösterilir.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Tek Tık Yeniden Planlama</div>
+        <div class="feat-desc">AI'ın önerdiği yeni tarih onaylanır, veritabanı anında güncellenir. Zaman çizgisi yeniden renklendirilir.</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:3mm;">
+      <div class="highlight-box sky" style="flex:1;">
+        <div class="hl-title">🆕 Yeni İş Emri Ekleme</div>
+        <div class="hl-body">Admin panelinden müdürlük, tarih, açıklama ve koordinat girilerek yeni iş emri oluşturulabilir. Gerçek zamanlı DB kaydı.</div>
+      </div>
+      <div class="highlight-box em" style="flex:1;">
+        <div class="hl-title">📊 Rapor Yönetimi</div>
+        <div class="hl-body">Vatandaş raporlarına durum atanır (Bekliyor → İşlemde → Çözüldü). Birim yönlendirme kategoriye göre otomatik.</div>
+      </div>
+      <div class="highlight-box amb" style="flex:1;">
+        <div class="hl-title">🔮 Tahminsel Bakım</div>
+        <div class="hl-body">300 m içinde 3+ çözümsüz rapor kümelenmesi proaktif iş emri önerisi tetikler.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 5 — TEKNİK MİMARİ
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo"><div class="logo-badge">KS</div><span>KentSenkron AI</span></div>
+    <span class="slide-num">05 / Teknik Mimari</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="gap:6mm;">
+
+    <!-- Left: stack -->
+    <div style="flex:1; display:flex; flex-direction:column; gap:4mm;">
+      <div>
+        <div class="section-label">Teknoloji Yığını</div>
+        <div style="font-size:14pt; font-weight:800; color:var(--navy);">Modern, Üretime Hazır</div>
+      </div>
+
+      <table class="stack-table">
+        <thead>
+          <tr>
+            <th>Katman</th>
+            <th>Teknoloji</th>
+            <th>Neden?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Framework</td>
+            <td>Next.js 16 · App Router</td>
+            <td>SSR + API tek çatıda, Turbopack</td>
+          </tr>
+          <tr>
+            <td>Dil</td>
+            <td>TypeScript 6</td>
+            <td>AI çıktı şemaları için tip güvenliği</td>
+          </tr>
+          <tr>
+            <td>Yapay Zeka</td>
+            <td>Vercel AI SDK v6 · Gemini 2.5 Flash</td>
+            <td>Streaming, tool-use, Türkçe üstün</td>
+          </tr>
+          <tr>
+            <td>Veritabanı</td>
+            <td>SQLite + Drizzle ORM</td>
+            <td>Sıfır kurulum, demo için ideal</td>
+          </tr>
+          <tr>
+            <td>Harita</td>
+            <td>Leaflet 1.9</td>
+            <td>Açık kaynak, hafif, ısı haritası</td>
+          </tr>
+          <tr>
+            <td>Arayüz</td>
+            <td>Tailwind CSS v4</td>
+            <td>Config dosyasız yeni mimari</td>
+          </tr>
+          <tr>
+            <td>Test</td>
+            <td>Vitest — 28 test</td>
+            <td>Motor + AI parser + utils doğrulanmış</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display:flex; gap:3mm;">
+        <span class="badge badge-em">✓ 28/28 Test Geçti</span>
+        <span class="badge badge-sky">MIT Lisans</span>
+        <span class="badge badge-navy">Tam Türkçe AI</span>
+      </div>
+    </div>
+
+    <!-- Right: architecture diagram -->
+    <div style="width:100mm; display:flex; flex-direction:column; gap:3mm;">
+      <div class="section-label">Veri Akışı</div>
+      <div style="background:var(--g50); border:1px solid var(--g200); border-radius:8px; padding:5mm; display:flex; flex-direction:column; gap:2.5mm; font-size:8pt; color:var(--g700); flex:1;">
+
+        <div style="background:#fff;border:1px solid var(--g200);border-radius:6px;padding:2.5mm 3mm;">
+          <strong style="color:var(--sky);">Vatandaş/Admin</strong> → butona basar
+        </div>
+        <div style="text-align:center;color:var(--g400);">↓</div>
+        <div style="background:#fff;border:1px solid var(--g200);border-radius:6px;padding:2.5mm 3mm;">
+          <strong>POST /api/agent</strong> — prompt gönderilir
+        </div>
+        <div style="text-align:center;color:var(--g400);">↓</div>
+        <div style="background:var(--sky-l);border:1px solid #bae6fd;border-radius:6px;padding:2.5mm 3mm;">
+          AI tool çağırır: <code>getWorkOrders()</code> + <code>getReports()</code>
+        </div>
+        <div style="text-align:center;color:var(--g400);">↓</div>
+        <div style="background:var(--navy);border-radius:6px;padding:2.5mm 3mm;color:#e2e8f0;">
+          <strong style="color:var(--sky);">Gemini 2.5 Flash</strong> — çakışmaları analiz eder, JSON + Türkçe açıklama üretir
+        </div>
+        <div style="text-align:center;color:var(--g400);">↓</div>
+        <div style="background:#fff;border:1px solid var(--g200);border-radius:6px;padding:2.5mm 3mm;">
+          <code>parseConflictReportFromText()</code> — JSON ayrıştırır
+        </div>
+        <div style="text-align:center;color:var(--g400);">↓</div>
+        <div style="background:var(--em-l);border:1px solid #6ee7b7;border-radius:6px;padding:2.5mm 3mm;">
+          <strong>Admin onaylar</strong> → <code>PATCH /api/work-orders/:id</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 6 — CANLI DEMO
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo"><div class="logo-badge">KS</div><span>KentSenkron AI</span></div>
+    <span class="slide-num">06 / Canlı Demo</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:4mm;">
+    <div>
+      <div class="section-label">Demo Akışı — 3 Ekran, 3 Dakika</div>
+      <div class="slide-title" style="font-size:20pt;">Seed Verisi: Bilinçli 7 Günlük Çakışma</div>
+      <div class="slide-subtitle" style="font-size:10pt; margin-top:1mm;">
+        Asfalt Müd. (1–15 Haz) ✕ Su ve Kanalizasyon Müd. (8–20 Haz) — Cumhuriyet Caddesi, aynı koordinat
+      </div>
+    </div>
+
+    <div class="grid-3" style="gap:3mm; flex:1;">
+      <!-- Screen 1 -->
+      <div style="background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:5mm;display:flex;flex-direction:column;gap:3mm;">
+        <div style="background:var(--sky);color:#fff;border-radius:6px;padding:2.5mm 4mm;font-size:8pt;font-weight:700;">① localhost:3000 — Ana Sayfa</div>
+        <div style="font-size:8.5pt;color:var(--g700);line-height:1.6;">
+          <div>• Üstte <strong>canlı etki rakamları</strong>: önlenen bütçe, CO₂, yol</div>
+          <div>• "AI'ın önlediği israf" — sıfırdan anlatılabilir</div>
+          <div>• Vatandaş portalına yönlendirme linki</div>
+        </div>
+        <div class="badge badge-sky" style="align-self:flex-start;">⏱ 30 sn</div>
+      </div>
+
+      <!-- Screen 2 -->
+      <div style="background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:5mm;display:flex;flex-direction:column;gap:3mm;">
+        <div style="background:var(--g700);color:#fff;border-radius:6px;padding:2.5mm 4mm;font-size:8pt;font-weight:700;">② /report — Vatandaş Portalı</div>
+        <div style="font-size:8.5pt;color:var(--g700);line-height:1.6;">
+          <div>• Haritada <strong>iş emiri markerları</strong></div>
+          <div>• Çakışan emirler <strong style="color:var(--rose);">kırmızı kesikli çizgi</strong> ile bağlı</div>
+          <div>• "🔥 Isı Haritası" açılır — ihbar yoğunluğu</div>
+          <div>• Haritaya tıkla → rapor konumu seç → gönder</div>
+        </div>
+        <div class="badge badge-sky" style="align-self:flex-start;">⏱ 60 sn</div>
+      </div>
+
+      <!-- Screen 3 -->
+      <div style="background:var(--navy);border-radius:8px;padding:5mm;display:flex;flex-direction:column;gap:3mm;">
+        <div style="background:var(--sky);color:#fff;border-radius:6px;padding:2.5mm 4mm;font-size:8pt;font-weight:700;">③ /dashboard — Admin Paneli</div>
+        <div style="font-size:8.5pt;color:#94a3b8;line-height:1.6;">
+          <div style="color:#e2e8f0;">• <strong style="color:var(--sky);">"AI Çakışma Analizi Çalıştır"</strong> butonuna bas</div>
+          <div>• Gemini akışı başlar — Cumhuriyet Caddesi, 7 gün, ~₺1.6M</div>
+          <div>• Zaman çizgisinde <strong style="color:var(--rose);">çakışan emirler kırmızı</strong></div>
+          <div style="color:#e2e8f0;">• <strong style="color:var(--em);">"Yeniden Planla" → çakışma çözüldü</strong></div>
+          <div>• Etki paneli güncellendi ✓</div>
+        </div>
+        <div class="badge badge-em" style="align-self:flex-start;">⏱ 90 sn</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:3mm;">
+      <div class="highlight-box rose" style="flex:1;">
+        <div class="hl-title">⚡ Yedek Plan (AI Çökerse)</div>
+        <div class="hl-body">Deterministik motor AI'dan bağımsız çalışır. <code>/api/conflicts</code> her zaman çakışma raporunu döndürür. Zaman çizgisi ve çakışma görselleştirmesi AI gerektirmez.</div>
+      </div>
+      <div class="highlight-box em" style="flex:1;">
+        <div class="hl-title">✅ Sunum Öncesi Kontrol</div>
+        <div class="hl-body">
+          npm run db:seed → npm run dev → AI analizi bir kez test et (cold start) → hotspot yedek hazırla
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 7 — SÜRDÜRÜLEBİLİRLİK ETKİSİ
+════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-hdr">
+    <div class="logo"><div class="logo-badge">KS</div><span>KentSenkron AI</span></div>
+    <span class="slide-num">07 / Etki & Sürdürülebilirlik</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:5mm;">
+    <div>
+      <div class="section-label">Neden Önemli?</div>
+      <div class="slide-title">Ölçülebilir Kamu Yararı</div>
+      <div class="slide-subtitle">SKH 11 — Sürdürülebilir Şehirler &nbsp;·&nbsp; SKH 12 — Sorumlu Kaynak Kullanımı</div>
+    </div>
+
+    <div class="grid-3" style="gap:4mm;">
+      <div class="stat-block" style="padding:7mm; background:var(--rose-l); border-color:#fecdd3;">
+        <div style="font-size:18pt; margin-bottom:2mm;">💰</div>
+        <div class="stat-num rose" style="font-size:20pt;">~₺1.6M</div>
+        <div class="stat-label">Önlenen bütçe kaybı — çakışma başına tahmini tasarruf</div>
+      </div>
+      <div class="stat-block" style="padding:7mm; background:var(--em-l); border-color:#6ee7b7;">
+        <div style="font-size:18pt; margin-bottom:2mm;">🌱</div>
+        <div class="stat-num em" style="font-size:20pt;">~25 ton</div>
+        <div class="stat-label">CO₂ azaltımı — gereksiz makine ve malzeme üretiminden</div>
+      </div>
+      <div class="stat-block" style="padding:7mm; background:var(--sky-l); border-color:#bae6fd;">
+        <div style="font-size:18pt; margin-bottom:2mm;">🛣️</div>
+        <div class="stat-num sky" style="font-size:20pt;">~500 m</div>
+        <div class="stat-label">Kurtarılan yol — gereksiz kazı ve kapanma engellendi</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:4mm;">
+      <div class="highlight-box em">
+        <div class="hl-title">📈 Ölçeklenebilirlik</div>
+        <div class="hl-body">Deterministik motor saf bir fonksiyon — şehir genelinde binlerce iş emrini saniyeler içinde tarar. Farklı şehirlere kopyalanabilir. Şehir büyüdükçe performans düşmez.</div>
+      </div>
+      <div class="highlight-box sky">
+        <div class="hl-title">🔌 Entegrasyon Hazırlığı</div>
+        <div class="hl-body">Her müdürlüğün zaten dijital iş emri kaydı var. KentSenkron mevcut sistemlere REST API ile bağlanır. Prototip bugün kurulup yarın belediyede kullanılabilir.</div>
+      </div>
+    </div>
+
+    <div class="highlight-box navy">
+      <div class="hl-title">📊 Etki Nasıl Ölçülüyor?</div>
+      <div class="hl-body">Açılış sayfası ve admin paneli — önlenen her çakışmadan hesaplanan bütçe, CO₂ ve yol tasarrufu <strong style="color:#e2e8f0;">gerçek zamanlı</strong> olarak güncellenir. Rakamlar veritabanındaki gerçek iş emirleri üzerinden hesaplanır, manuel giriş değil.</div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>KentSenkron AI · Team Zetora</span>
+    <span>Bilim Erzurum 2026</span>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE 8 — EKİP & KAPANIŞ
+════════════════════════════════════════ -->
+<div class="slide slide-cover" style="page-break-after: avoid;">
+  <div class="cover-grid-bg"></div>
+
+  <div class="slide-hdr" style="background:rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.08);">
+    <div class="logo">
+      <div class="logo-badge">KS</div>
+      <span style="color:#94a3b8;">KentSenkron AI</span>
+    </div>
+    <span class="slide-num" style="color:#475569;">08 / Ekip</span>
+  </div>
+
+  <div class="slide-body slide-pad" style="flex-direction:column; gap:6mm; position:relative; z-index:1;">
+
+    <div>
+      <div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--sky);margin-bottom:2mm;">Team Zetora</div>
+      <div style="font-size:20pt;font-weight:800;color:#fff;line-height:1.2;">Bizi Tanıyın</div>
+    </div>
+
+    <div style="display:flex; gap:4mm;">
+
+      <div class="team-card" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+        <div class="team-avatar" style="background:var(--sky);">CG</div>
+        <div class="team-name" style="color:#e2e8f0;">Cengizhan Göçer</div>
+        <div class="team-role" style="color:#94a3b8;">
+          Proje Liderliği<br>
+          Backend · Çakışma Motoru<br>
+          AI Entegrasyonu · Veritabanı
+        </div>
+      </div>
+
+      <div class="team-card" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+        <div class="team-avatar" style="background:#6366f1;">HA</div>
+        <div class="team-name" style="color:#e2e8f0;">Hüseyin Taha Adanur</div>
+        <div class="team-role" style="color:#94a3b8;">
+          Vatandaş Portalı<br>
+          Harita Arayüzü · Isı Haritası<br>
+          GPS Konum Entegrasyonu
+        </div>
+      </div>
+
+      <div class="team-card" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);">
+        <div class="team-avatar" style="background:#8b5cf6;">OA</div>
+        <div class="team-name" style="color:#e2e8f0;">Ozan Osman Akan</div>
+        <div class="team-role" style="color:#94a3b8;">
+          Admin Paneli · Zaman Çizgisi<br>
+          AI Sonuç Paneli<br>
+          Etki İstatistikleri
+        </div>
+      </div>
+    </div>
+
+    <!-- Closing -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:5mm;">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:6mm;">
+        <div>
+          <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:rgba(14,165,233,0.7);margin-bottom:2mm;">Teşekkürler</div>
+          <div style="font-size:22pt;font-weight:900;color:#fff;letter-spacing:-0.02em;line-height:1.1;">
+            Şehri iki kez<br><span style="color:var(--sky);">kazma.</span>
+          </div>
+          <div style="font-size:9pt;color:#475569;margin-top:3mm;">github.com/ZeuLeg/bilim-erzurum-hackathon &nbsp;·&nbsp; MIT Lisans</div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2mm;">
+          <div style="background:rgba(14,165,233,0.12); border:1px solid rgba(14,165,233,0.25); border-radius:8px; padding:3mm 5mm; text-align:right;">
+            <div style="font-size:8pt;color:var(--sky);font-weight:700;">Sorularınız için hazırız</div>
+            <div style="font-size:8.5pt;color:#94a3b8;margin-top:1mm;">Team Zetora · Bilim Erzurum 2026</div>
+          </div>
+          <div style="display:flex;gap:2mm;">
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:1.5mm 4mm;font-size:7.5pt;color:#64748b;">Next.js 16</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:1.5mm 4mm;font-size:7.5pt;color:#64748b;">Gemini 2.5</span>
+            <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:1.5mm 4mm;font-size:7.5pt;color:#64748b;">TypeScript</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF: Ctrl+P → PDF Olarak Kaydet → A4 Yatay → Kenar boşlukları: Yok -->
+
+</body>
+</html>

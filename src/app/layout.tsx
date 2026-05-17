@@ -1,13 +1,13 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CitySync AI — Erzurum Municipal Platform',
+  title: 'KentSenkron AI — Erzurum Belediye Koordinasyon Platformu',
   description:
-    'AI-powered municipal coordination platform preventing infrastructure resource waste through autonomous conflict detection.',
+    'Belediye altyapı çalışmalarında yapay zeka destekli çakışma tespiti ve koordinasyon platformu.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

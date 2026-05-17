@@ -43,11 +43,12 @@ function parseJsonString(value: string): any | null {
   }
 }
 
-function normalizeParsedReport(data: any): ParsedConflictReport | null {
+function normalizeParsedReport(data: unknown): ParsedConflictReport | null {
   if (!data || typeof data !== 'object') return null;
+  const record = data as Record<string, unknown>;
 
-  const summary = typeof data.summary === 'string' ? data.summary : '';
-  const conflicts = Array.isArray(data.conflicts) ? data.conflicts : [];
+  const summary = typeof record.summary === 'string' ? record.summary : '';
+  const conflicts = Array.isArray(record.conflicts) ? record.conflicts : [];
 
   if (typeof summary !== 'string' || !Array.isArray(conflicts)) return null;
 

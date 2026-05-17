@@ -41,6 +41,7 @@ export interface ConflictAlert {
   overlapDays: number;
   severity: 'low' | 'medium' | 'high';
   reason: string;
+  budgetImpact?: string | number;
 }
 
 export interface NewReport {
