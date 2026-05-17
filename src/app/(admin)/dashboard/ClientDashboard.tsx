@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { parseConflictReportFromText } from '@/lib/ai/conflictParser';
 import ConflictPanel from '@/components/shared/ConflictPanel';
 import { StatCard } from '@/components/ui/StatCard';
+import { CATEGORY_META } from '@/types';
+import type { ReportCategory, ReportStatus } from '@/types';
 
 type WorkOrderClient = {
   id: number;
@@ -19,6 +21,17 @@ type WorkOrderClient = {
   status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 };
 
+type ReportClient = {
+  id: number;
+  title: string;
+  description: string;
+  status: ReportStatus;
+  category: ReportCategory;
+  locationLat: number;
+  locationLng: number;
+  createdAt: string;
+};
+
 type ConflictImpact = {
   wastedBudgetTRY: number;
   co2KgSaved: number;
@@ -27,6 +40,7 @@ type ConflictImpact = {
 
 interface ClientDashboardProps {
   workOrders: WorkOrderClient[];
+  reports: ReportClient[];
   pendingReportsCount: number;
   totalWorkOrders: number;
 }
@@ -65,15 +79,28 @@ function formatOrderDateRange(start: string, end: string) {
   })}`;
 }
 
-export default function ClientDashboard({ workOrders, pendingReportsCount, totalWorkOrders }: ClientDashboardProps) {
+const reportStatusLabels: Record<ReportStatus, string> = {
+  pending: 'Bekliyor',
+  in_progress: 'İşlemde',
+  resolved: 'Çözüldü',
+};
+const reportStatusStyles: Record<ReportStatus, string> = {
+  pending: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',
+  in_progress: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
+  resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
+};
+
+export default function ClientDashboard({ workOrders, reports: initialReports, pendingReportsCount, totalWorkOrders }: ClientDashboardProps) {
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/agent' }),
   });
   const isLoading = status === 'submitted' || status === 'streaming';
 
   const [conflictImpact, setConflictImpact] = useState<ConflictImpact | null>(null);
+  const [reports, setReports] = useState<ReportClient[]>(initialReports);
+  const [updatingReportId, setUpdatingReportId] = useState<number | null>(null);
 
-  const fetchConflictImpact = async () => {
+  const fetchConflictImpact = useCallback(async () => {
     try {
       const res = await fetch('/api/conflicts');
       if (!res.ok) return;
@@ -82,9 +109,54 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
     } catch {
       // non-critical
     }
+  }, []);
+
+  useEffect(() => { fetchConflictImpact(); }, [fetchConflictImpact]);
+
+  const handleUpdateReportStatus = async (reportId: number, newStatus: ReportStatus) => {
+    setUpdatingReportId(reportId);
+    try {
+      const res = await fetch(`/api/reports/${reportId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) return;
+      const updated = await res.json();
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, status: updated.status } : r)));
+    } finally {
+      setUpdatingReportId(null);
+    }
   };
 
-  useEffect(() => { fetchConflictImpact(); }, []);
+  // Report stats
+  const reportStats = useMemo(() => ({
+    total: reports.length,
+    pending: reports.filter((r) => r.status === 'pending').length,
+    in_progress: reports.filter((r) => r.status === 'in_progress').length,
+    resolved: reports.filter((r) => r.status === 'resolved').length,
+    resolutionRate: reports.length > 0 ? Math.round((reports.filter((r) => r.status === 'resolved').length / reports.length) * 100) : 0,
+  }), [reports]);
+
+  // Predictive maintenance: 3+ unresolved reports clustered within 300m of each other
+  const predictiveClusters = useMemo(() => {
+    const unresolved = reports.filter((r) => r.status !== 'resolved');
+    const clusters: { center: ReportClient; count: number; category: ReportCategory }[] = [];
+    const visited = new Set<number>();
+    unresolved.forEach((r) => {
+      if (visited.has(r.id)) return;
+      const nearby = unresolved.filter((other) => {
+        const dLat = (other.locationLat - r.locationLat) * 111000;
+        const dLng = (other.locationLng - r.locationLng) * 111000 * Math.cos((r.locationLat * Math.PI) / 180);
+        return Math.sqrt(dLat * dLat + dLng * dLng) < 300;
+      });
+      if (nearby.length >= 3) {
+        nearby.forEach((n) => visited.add(n.id));
+        clusters.push({ center: r, count: nearby.length, category: r.category });
+      }
+    });
+    return clusters;
+  }, [reports]);
 
   // ai v6 messages are parts-based — flatten each to plain { role, content } text.
   const textMessages = useMemo(
@@ -192,24 +264,49 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
         {/* AI impact stats */}
         {conflictImpact && (
           <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            <StatCard
-              emoji="💰"
-              label="AI Çakışma Önleme Etkisi"
-              value={`₺${conflictImpact.wastedBudgetTRY.toLocaleString('tr-TR')}`}
-              caption="Önlenebilir bütçe kaybı"
-            />
-            <StatCard
-              emoji="🌱"
-              label="CO₂ Tasarrufu"
-              value={`${conflictImpact.co2KgSaved.toLocaleString('tr-TR')} kg`}
-              caption="Tahmini karbon azaltımı"
-            />
-            <StatCard
-              emoji="🛣️"
-              label="Yol Kurtarımı"
-              value={`${conflictImpact.roadMetersSaved.toLocaleString('tr-TR')} m`}
-              caption="Çakışma nedeniyle kurtarılan yol"
-            />
+            <StatCard emoji="💰" label="AI Çakışma Önleme Etkisi" value={`₺${conflictImpact.wastedBudgetTRY.toLocaleString('tr-TR')}`} caption="Önlenebilir bütçe kaybı" />
+            <StatCard emoji="🌱" label="CO₂ Tasarrufu" value={`${conflictImpact.co2KgSaved.toLocaleString('tr-TR')} kg`} caption="Tahmini karbon azaltımı" />
+            <StatCard emoji="🛣️" label="Yol Kurtarımı" value={`${conflictImpact.roadMetersSaved.toLocaleString('tr-TR')} m`} caption="Çakışma nedeniyle kurtarılan yol" />
+          </div>
+        )}
+
+        {/* Report stats */}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Toplam Rapor</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">{reportStats.total}</p>
+          </div>
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <p className="text-sm font-medium text-amber-700">Bekleyen</p>
+            <p className="mt-2 text-3xl font-semibold text-amber-900">{reportStats.pending}</p>
+          </div>
+          <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+            <p className="text-sm font-medium text-blue-700">İşlemde</p>
+            <p className="mt-2 text-3xl font-semibold text-blue-900">{reportStats.in_progress}</p>
+          </div>
+          <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+            <p className="text-sm font-medium text-emerald-700">Çözüm Oranı</p>
+            <p className="mt-2 text-3xl font-semibold text-emerald-900">%{reportStats.resolutionRate}</p>
+          </div>
+        </div>
+
+        {/* Predictive maintenance */}
+        {predictiveClusters.length > 0 && (
+          <div className="mt-4 rounded-3xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
+            <p className="text-sm font-semibold text-violet-900">🔮 Tahminsel Bakım Önerisi</p>
+            <p className="mt-1 text-sm text-violet-700">Aşağıdaki bölgelerde yoğun vatandaş şikayeti tespit edildi. Proaktif iş emri planlanması önerilir.</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {predictiveClusters.map((cluster, i) => {
+                const catMeta = CATEGORY_META[cluster.category];
+                return (
+                  <div key={i} className="rounded-2xl border border-violet-200 bg-white p-4">
+                    <p className="text-sm font-semibold text-slate-900">{catMeta.department}</p>
+                    <p className="text-xs text-slate-500 mt-1">{cluster.count} rapor · {cluster.center.locationLat.toFixed(3)}, {cluster.center.locationLng.toFixed(3)}</p>
+                    <span className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${catMeta.color}`}>{catMeta.label}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -301,16 +398,65 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
             </div>
           </div>
 
-          <aside className="lg:w-[420px] rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">AI Sonuç Paneli</h2>
-            <p className="mt-1 text-sm text-slate-500">Yapay zeka çakışma analizini çalıştırdığınızda burada sonuçlar gözükecek.</p>
-            <div className="mt-6">
-              <ConflictPanel
-                messages={textMessages}
-                isLoading={isLoading}
-                chatError={error}
-                onRescheduleSuccess={fetchConflictImpact}
-              />
+          <aside className="lg:w-[420px] space-y-6">
+            {/* AI Panel */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900">AI Sonuç Paneli</h2>
+              <p className="mt-1 text-sm text-slate-500">Yapay zeka çakışma analizini çalıştırdığınızda burada sonuçlar gözükecek.</p>
+              <div className="mt-6">
+                <ConflictPanel
+                  messages={textMessages}
+                  isLoading={isLoading}
+                  chatError={error}
+                  onRescheduleSuccess={fetchConflictImpact}
+                />
+              </div>
+            </div>
+
+            {/* Report management */}
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-slate-900">Rapor Yönetimi</h2>
+              <p className="mt-1 text-sm text-slate-500">Vatandaş raporlarının durumunu güncelleyin.</p>
+              <div className="mt-4 space-y-3">
+                {reports.length === 0 ? (
+                  <p className="text-sm text-slate-400">Rapor bulunamadı.</p>
+                ) : (
+                  reports.slice().sort((a, b) => {
+                    const order = { pending: 0, in_progress: 1, resolved: 2 };
+                    return order[a.status] - order[b.status];
+                  }).map((report) => {
+                    const catMeta = CATEGORY_META[report.category];
+                    return (
+                      <div key={report.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-semibold text-slate-900 leading-snug">{report.title}</p>
+                          <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${catMeta.color}`}>
+                            {catMeta.label}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">{catMeta.department}</p>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {(['pending', 'in_progress', 'resolved'] as ReportStatus[]).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              disabled={report.status === s || updatingReportId === report.id}
+                              onClick={() => handleUpdateReportStatus(report.id, s)}
+                              className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-40 ${
+                                report.status === s
+                                  ? reportStatusStyles[s] + ' opacity-100 cursor-default'
+                                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {updatingReportId === report.id && report.status !== s ? '...' : reportStatusLabels[s]}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </aside>
         </div>

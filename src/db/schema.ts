@@ -17,6 +17,9 @@ export const reports = sqliteTable('reports', {
   status: text('status', { enum: ['pending', 'in_progress', 'resolved'] })
     .notNull()
     .default('pending'),
+  category: text('category', { enum: ['road', 'water', 'electricity', 'gas', 'other'] })
+    .notNull()
+    .default('other'),
   locationLat: real('location_lat').notNull(),
   locationLng: real('location_lng').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' })

@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Report, ReportStatus } from "@/types";
+import type { Report, ReportStatus, ReportCategory } from "@/types";
+import { CATEGORY_META } from "@/types";
 
 const statusMeta: Record<ReportStatus, { label: string; badge: string }> = {
-  pending: { label: "Bekliyor", badge: "bg-amber-50 text-amber-700 ring-amber-100" },
+  pending:     { label: "Bekliyor", badge: "bg-amber-50 text-amber-700 ring-amber-100" },
   in_progress: { label: "İşlemde", badge: "bg-blue-50 text-blue-700 ring-blue-100" },
-  resolved: { label: "Çözüldü", badge: "bg-emerald-50 text-emerald-700 ring-emerald-100" },
+  resolved:    { label: "Çözüldü", badge: "bg-emerald-50 text-emerald-700 ring-emerald-100" },
 };
 
 type Filter = ReportStatus | "all";
@@ -64,7 +65,7 @@ export default function ReportList({ reports, onSelect }: ReportListProps) {
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold text-slate-900">Bildirilen Sorunlar</h2>
         <p className="text-sm text-slate-500">
-          Şehir genelinde bildirilen altyapı sorunları ve güncel durumları.
+          Şehir genelinde bildirilen altyapı sorunları, güncel durumları ve yönlendirilen birimler.
         </p>
       </div>
 
@@ -92,14 +93,15 @@ export default function ReportList({ reports, onSelect }: ReportListProps) {
         ))}
       </div>
 
-      <div className="mt-5 space-y-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+          <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
             Bu filtrede gösterilecek rapor yok.
           </div>
         ) : (
           visible.map((report) => {
             const meta = statusMeta[report.status];
+            const catMeta = CATEGORY_META[(report.category as ReportCategory) ?? "other"];
             const interactive = typeof onSelect === "function";
             return (
               <article
@@ -111,18 +113,20 @@ export default function ReportList({ reports, onSelect }: ReportListProps) {
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-sm font-semibold text-slate-900">{report.title}</p>
-                  <span
-                    className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${meta.badge}`}
-                  >
+                  <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${meta.badge}`}>
                     {meta.label}
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm text-slate-600">{report.description}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                  <span>{formatDate(report.createdAt)}</span>
-                  <span>
-                    {report.locationLat.toFixed(4)}, {report.locationLng.toFixed(4)}
+                <p className="mt-1.5 text-sm text-slate-600 line-clamp-2">{report.description}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${catMeta.color}`}>
+                    {catMeta.label}
                   </span>
+                  <span className="text-xs text-slate-400">→ {catMeta.department}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
+                  <span>{formatDate(report.createdAt)}</span>
+                  <span>{report.locationLat.toFixed(4)}, {report.locationLng.toFixed(4)}</span>
                 </div>
               </article>
             );
