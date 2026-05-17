@@ -39,6 +39,7 @@ Deterministik motor **güvenilirliği** (jüri demosunda asla boş ekran yok), A
 | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
 | 🗺️ **Vatandaş Portalı** (`/report`)      | Harita üzerinden sorun bildirme, mevcut ihbarları ve iş emirlerini görüntüleme             |
 | 🔗 **Çakışma Görselleştirme**            | Çakışan iş emirleri haritada renkli kesikli çizgilerle (kırmızı/turuncu/sarı) eşleştirilir |
+| 🔥 **İhbar Isı Haritası**                | Vatandaş ihbarlarının yoğunlaştığı bölgeler haritada açılıp-kapanan ısı katmanıyla görülür  |
 | 🤖 **AI Çakışma Analizi** (`/dashboard`) | Tek tıkla tüm iş emirlerini tarar, Türkçe gerekçeli rapor üretir                           |
 | 💰 **Etki Paneli**                       | Önlenen bütçe kaybı (₺), CO₂ tasarrufu (kg), kurtarılan yol (m) — gerçek zamanlı           |
 | 📅 **Zaman Çizgisi (Gantt)**             | İş emirleri takvim üzerinde; çakışanlar kırmızı vurgulanır                                 |

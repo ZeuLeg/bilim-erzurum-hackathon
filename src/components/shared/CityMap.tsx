@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Report, WorkOrder, ConflictAlert } from "@/types";
@@ -42,6 +42,8 @@ export default function CityMap({
   const markersRef = useRef<L.CircleMarker[]>([]);
   const conflictLinesRef = useRef<L.Polyline[]>([]);
   const selectedPinRef = useRef<L.Marker | null>(null);
+  const heatLayerRef = useRef<L.Circle[]>([]);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -243,8 +245,51 @@ export default function CityMap({
     selectedPinRef.current = marker;
   }, [selectedLocation, onLocationSelect]);
 
+  // Render a soft density heatmap of citizen reports when toggled on
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    heatLayerRef.current.forEach((circle) => {
+      mapRef.current?.removeLayer(circle);
+    });
+    heatLayerRef.current = [];
+
+    if (!showHeatmap) return;
+
+    // Stacking translucent rings — overlapping reports read as hotter zones.
+    const rings = [
+      { radius: 340, fillOpacity: 0.1 },
+      { radius: 210, fillOpacity: 0.12 },
+      { radius: 95, fillOpacity: 0.16 },
+    ];
+
+    reports.forEach((report) => {
+      rings.forEach((ring) => {
+        const circle = L.circle([report.locationLat, report.locationLng], {
+          radius: ring.radius,
+          stroke: false,
+          fillColor: "#ef4444",
+          fillOpacity: ring.fillOpacity,
+        }).addTo(mapRef.current!);
+        circle.bringToBack();
+        heatLayerRef.current.push(circle);
+      });
+    });
+  }, [showHeatmap, reports]);
+
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-slate-200 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setShowHeatmap((value) => !value)}
+        className={`absolute left-4 top-4 z-10 rounded-2xl border px-3 py-2 text-sm font-medium shadow-sm backdrop-blur-sm transition ${
+          showHeatmap
+            ? "border-rose-300 bg-rose-50 text-rose-700"
+            : "border-slate-200 bg-white/90 text-slate-700 hover:bg-white"
+        }`}
+      >
+        {showHeatmap ? "🔥 Isı Haritası: Açık" : "🗺️ Isı Haritası: Kapalı"}
+      </button>
       <div className="absolute right-4 top-4 z-10 max-w-[240px] rounded-2xl border border-slate-200 bg-white/90 p-3 text-sm shadow-sm backdrop-blur-sm sm:max-w-[280px]">
         <p className="font-semibold text-slate-900">Harita Açıklaması</p>
         <div className="mt-3 space-y-2">
