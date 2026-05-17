@@ -118,7 +118,7 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
       <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
         <p className="text-sm font-semibold text-slate-900">AI analiz ediyor...</p>
-        <p className="mt-2 text-sm text-slate-500">Conflict detection için iş emirlerini ve konum verilerini inceliyor.</p>
+        <p className="mt-2 text-sm text-slate-500">Çakışma tespiti için iş emirlerini ve konum verilerini inceliyor.</p>
       </div>
     );
   }
@@ -134,8 +134,20 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
 
   if (messages.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-        Henüz analiz başlatılmadı. "AI Çakışma Analizi Çalıştır" butonuna basın.
+      <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+          🤖
+        </div>
+        <p className="text-sm font-semibold text-slate-900">AI analizi hazır</p>
+        <p className="mt-2 text-sm text-slate-500">
+          Bir analiz başlatın; tespit edilen çakışmalar, tahmini bütçe etkisi ve
+          yeniden planlama önerileri burada listelenir.
+        </p>
+        <ul className="mx-auto mt-4 max-w-[260px] space-y-1.5 text-left text-xs text-slate-500">
+          <li>📍 300 m yakınlık + tarih örtüşmesi taranır</li>
+          <li>💰 Her çakışmanın tahmini maliyeti hesaplanır</li>
+          <li>⚡ Tek tıkla yeniden planlama önerilir</li>
+        </ul>
       </div>
     );
   }
@@ -159,7 +171,7 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{getRoleLabel(message.role)}</span>
               {hasHighConflict ? (
                 <span className="rounded-full bg-rose-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-700">
-                  HIGH severity
+                  Yüksek Risk
                 </span>
               ) : null}
             </div>
@@ -189,14 +201,14 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <p className="text-sm font-semibold text-slate-800">Work Order A</p>
+                            <p className="text-sm font-semibold text-slate-800">İş Emri A</p>
                             <p className="text-sm text-slate-600">{formatWorkOrderLine(conflict.workOrderA)}</p>
                             {conflict.workOrderA.description ? (
                               <p className="text-sm text-slate-500">{conflict.workOrderA.description}</p>
                             ) : null}
                           </div>
                           <div className="space-y-2">
-                            <p className="text-sm font-semibold text-slate-800">Work Order B</p>
+                            <p className="text-sm font-semibold text-slate-800">İş Emri B</p>
                             <p className="text-sm text-slate-600">{formatWorkOrderLine(conflict.workOrderB)}</p>
                             {conflict.workOrderB.description ? (
                               <p className="text-sm text-slate-500">{conflict.workOrderB.description}</p>

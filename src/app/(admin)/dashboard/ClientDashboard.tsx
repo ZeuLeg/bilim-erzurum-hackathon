@@ -34,11 +34,23 @@ interface ClientDashboardProps {
 const ANALYSIS_PROMPT =
   'Tüm planlanmış iş emirlerini çakışmalar ve kaynak israfı açısından analiz et. Konum yakınlığını (300 metre içinde) ve tarih örtüşmelerini kontrol et. Özet ve çakışmalar içeren JSON formatında yapılandırılmış bir çakışma raporu sun.';
 
+const RISK_ANALYSIS_PROMPT =
+  'Önümüzdeki 30 gün içinde başlayacak veya bu dönemde devam edecek iş emirlerine odaklan. '
+  + 'Bu yakın dönemdeki çakışmaları aciliyet sırasına göre değerlendir; her biri için risk seviyesini, '
+  + 'tahmini maliyetini ve önerilen acil aksiyonu belirt. Sonucu özet ve çakışmalar içeren JSON formatında sun.';
+
 const statusBadgeStyles: Record<WorkOrderClient['status'], string> = {
   scheduled: 'bg-blue-50 text-blue-700 ring-blue-100',
   in_progress: 'bg-yellow-50 text-yellow-800 ring-yellow-100',
   completed: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
   cancelled: 'bg-rose-50 text-rose-700 ring-rose-100',
+};
+
+const statusLabels: Record<WorkOrderClient['status'], string> = {
+  scheduled: 'Planlandı',
+  in_progress: 'Devam Ediyor',
+  completed: 'Tamamlandı',
+  cancelled: 'İptal Edildi',
 };
 
 function formatOrderDateRange(start: string, end: string) {
@@ -134,6 +146,10 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
     await sendMessage({ text: ANALYSIS_PROMPT });
   };
 
+  const handleRunRiskAnalysis = async () => {
+    await sendMessage({ text: RISK_ANALYSIS_PROMPT });
+  };
+
   return (
     <main className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white px-6 py-5 shadow-sm">
@@ -204,14 +220,24 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
                 <h2 className="text-lg font-semibold text-slate-900">Planlanmış İş Emirleri</h2>
                 <p className="mt-1 text-sm text-slate-500">Sistemde kayıtlı iş emirlerini ve mevcut durumlarını görüntüleyin.</p>
               </div>
-              <button
-                type="button"
-                onClick={handleRunAnalysis}
-                disabled={isLoading}
-                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isLoading ? 'AI Analizi Çalıştırılıyor...' : 'AI Çakışma Analizi Çalıştır'}
-              </button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleRunAnalysis}
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoading ? 'AI Analizi Çalıştırılıyor...' : 'AI Çakışma Analizi Çalıştır'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRunRiskAnalysis}
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  30 Gün Risk Analizi
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -256,7 +282,7 @@ export default function ClientDashboard({ workOrders, pendingReportsCount, total
                       <span
                         className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusBadgeStyles[order.status]}`}
                       >
-                        {order.status.replace('_', ' ').toUpperCase()}
+                        {statusLabels[order.status]}
                       </span>
                     </div>
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
