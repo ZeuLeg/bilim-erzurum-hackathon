@@ -6,6 +6,7 @@ import { MapPin, ShieldCheck, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import type { Report, WorkOrder, ConflictAlert } from "@/types";
 import ReportForm from "@/components/shared/ReportForm";
+import ReportList from "@/components/shared/ReportList";
 
 const CityMap = dynamic(() => import("@/components/shared/CityMap"), {
   ssr: false,
@@ -149,6 +150,18 @@ export default function ReportPage() {
             onSubmit={handleReportSubmitted}
           />
         </aside>
+      </div>
+
+      <div className="mx-auto max-w-[1480px] px-4 pb-10 lg:px-6">
+        <ReportList
+          reports={reports}
+          onSelect={(report) =>
+            setSelectedLocation({
+              locationLat: report.locationLat,
+              locationLng: report.locationLng,
+            })
+          }
+        />
       </div>
     </main>
   );
