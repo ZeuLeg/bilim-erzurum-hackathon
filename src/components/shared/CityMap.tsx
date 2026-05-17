@@ -103,8 +103,13 @@ export default function CityMap({
         fillOpacity: 0.7,
       }).addTo(mapRef.current);
 
+      const reportStatusLabels: Record<string, string> = {
+        pending: 'Bekliyor',
+        in_progress: 'İşlemde',
+        resolved: 'Çözüldü',
+      };
       marker.bindPopup(
-        `<div style="font-size: 14px; line-height: 1.5;"><strong>${report.title}</strong><br>Durum: ${report.status.replace("_", " ")}<br>${new Date(
+        `<div style="font-size: 14px; line-height: 1.5;"><strong>${report.title}</strong><br>Durum: ${reportStatusLabels[report.status] ?? report.status}<br>${new Date(
           report.createdAt,
         ).toLocaleString("tr-TR")}</div>`,
       );
@@ -144,11 +149,14 @@ export default function CityMap({
         },
       ).addTo(mapRef.current);
 
+      const workOrderStatusLabels: Record<string, string> = {
+        scheduled: 'Planlandı',
+        in_progress: 'Devam Ediyor',
+        completed: 'Tamamlandı',
+        cancelled: 'İptal Edildi',
+      };
       marker.bindPopup(
-        `<div style="font-size: 14px; line-height: 1.5;"><strong>${workOrder.departmentName}</strong><br>Durum: ${workOrder.status.replace(
-          "_",
-          " ",
-        )}<br>${new Date(workOrder.plannedStartDate).toLocaleDateString("tr-TR")} - ${new Date(
+        `<div style="font-size: 14px; line-height: 1.5;"><strong>${workOrder.departmentName}</strong><br>Durum: ${workOrderStatusLabels[workOrder.status] ?? workOrder.status}<br>${new Date(workOrder.plannedStartDate).toLocaleDateString("tr-TR")} - ${new Date(
           workOrder.plannedEndDate,
         ).toLocaleDateString("tr-TR")}</div>`,
       );

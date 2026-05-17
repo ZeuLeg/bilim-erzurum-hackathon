@@ -215,7 +215,7 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
                             ) : null}
                           </div>
                         </div>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
                           <div>
                             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Mesafe</p>
                             <p className="text-sm font-semibold text-slate-900">{conflict.distanceMeters} m</p>
@@ -223,10 +223,6 @@ export default function ConflictPanel({ messages, isLoading, chatError, onResche
                           <div>
                             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Çakışma süresi</p>
                             <p className="text-sm font-semibold text-slate-900">{conflict.overlapDays} gün</p>
-                          </div>
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Öneri</p>
-                            <p className="text-sm font-semibold text-slate-900">{conflict.reason}</p>
                           </div>
                         </div>
                         {conflict.budgetImpact != null ? (
