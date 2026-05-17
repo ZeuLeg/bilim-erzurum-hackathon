@@ -184,7 +184,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-100 px-6 py-8 text-center text-xs text-slate-400">
-        Erzurum Büyükşehir Belediyesi &middot; 2026 Yapay Zeka ve Sürdürülebilir Kalkınma Hackathonu
+        2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu &middot; Bilim Erzurum
         &middot; <span className="text-blue-500">Team Zetora</span>
       </footer>
     </main>

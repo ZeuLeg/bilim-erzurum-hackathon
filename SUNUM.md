@@ -10,7 +10,7 @@
 **CitySync AI**
 *Erzurum'da altyapı çalışmaları artık çakışmıyor.*
 
-Team Zetora · 2026 Yapay Zeka ve Sürdürülebilir Kalkınma Hackathonu
+Team Zetora · 2026 Kamuda Dijital Dönüşüm ve Yapay Zeka Hackathonu · Bilim Erzurum
 
 > **Konuşma:** "Merhaba, biz Team Zetora. Bugün size belediyelerin yıllardır çözemediği bir israf problemini, yapay zeka ile nasıl çözdüğümüzü göstereceğiz."
 
